@@ -1,9 +1,10 @@
-import { Student, ClassSession } from '../types';
+import { Student, ClassSession, ClassConfig } from '../types';
 
 const STORAGE_KEYS = {
   STUDENTS: 'sundaykeep_students',
   SESSIONS: 'sundaykeep_sessions',
   CLASSES: 'sundaykeep_classes',
+  CLASS_CONFIGS: 'sundaykeep_class_configs',
 };
 
 export const saveStudents = (students: Student[]) => {
@@ -51,6 +52,15 @@ export const getClasses = (): string[] => {
   return legacyData ? JSON.parse(legacyData) : [];
 };
 
+export const saveClassConfigs = (configs: Record<string, ClassConfig>) => {
+  localStorage.setItem(STORAGE_KEYS.CLASS_CONFIGS, JSON.stringify(configs));
+};
+
+export const getClassConfigs = (): Record<string, ClassConfig> => {
+  const data = localStorage.getItem(STORAGE_KEYS.CLASS_CONFIGS);
+  return data ? JSON.parse(data) : {};
+};
+
 // Helper to escape CSV fields (handle commas, quotes, newlines)
 const escapeCsvField = (value: string | number | undefined | null): string => {
   if (value === undefined || value === null) return '';
@@ -68,7 +78,16 @@ export const exportToCSV = (sessions: ClassSession[], students: Student[]) => {
     'Topic', 
     'Total Present', 
     'Total Absent', 
-    ...students.map(s => `${s.name} (${s.className || 'No Class'}) - ${s.guardianContact || 'No Contact'}`)
+    ...students.map(s => {
+      const parts = [
+        s.name,
+        s.className ? `(${s.className})` : '',
+        s.birthday ? `[DOB: ${s.birthday}]` : '',
+        s.guardianContact ? `- ${s.guardianContact}` : '',
+        s.address ? `[Addr: ${s.address}]` : ''
+      ].filter(Boolean).join(' ');
+      return parts;
+    })
   ].map(escapeCsvField);
   
   const rows = sessions.map(session => {

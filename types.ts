@@ -3,8 +3,11 @@ export interface Student {
   name: string;
   guardian?: string;
   guardianContact?: string;
+  address?: string;
   notes?: string;
   className?: string;
+  birthday?: string; // ISO Date string YYYY-MM-DD
+  photo?: string; // Base64 Data URL
 }
 
 export type AttendanceStatus = 'present' | 'absent';
@@ -25,4 +28,9 @@ export interface AttendanceStats {
   totalSessions: number;
   averageAttendance: number;
   totalStudents: number;
+}
+
+export interface ClassConfig {
+  minAge: number;
+  maxAge: number;
 }

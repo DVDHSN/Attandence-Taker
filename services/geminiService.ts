@@ -1,11 +1,16 @@
-import { ClassSession, Student } from "../types";
+import { GoogleGenAI } from "@google/genai";
 
-// AI Assistant feature has been removed.
-// This file is kept to maintain file structure integrity but functionality is disabled.
+const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
-export const generateClassInsight = async (
-  sessions: ClassSession[],
-  students: Student[]
-): Promise<string> => {
-  return Promise.resolve("AI feature is disabled.");
+export const generateText = async (prompt: string, model: string = 'gemini-2.5-flash'): Promise<string> => {
+  try {
+    const response = await ai.models.generateContent({
+      model,
+      contents: prompt,
+    });
+    return response.text || '';
+  } catch (error) {
+    console.error("Error generating content with Gemini:", error);
+    throw error;
+  }
 };
