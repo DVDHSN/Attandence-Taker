@@ -161,6 +161,7 @@ const App: React.FC = () => {
                 onUpdateStudents={handleUpdateStudents}
                 classes={classes}
                 onUpdateClasses={handleUpdateClasses}
+                sessions={sessions}
               />
             )}
           </div>
