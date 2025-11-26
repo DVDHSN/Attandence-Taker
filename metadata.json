@@ -1,0 +1,5 @@
+{
+  "name": "Attendance Taker",
+  "description": "A modern, dark-mode attendance tracker for classes with student management, history tracking, and CSV export.",
+  "requestFramePermissions": []
+}
