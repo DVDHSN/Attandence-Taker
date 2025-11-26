@@ -33,6 +33,14 @@ export const StudentManager: React.FC<StudentManagerProps> = ({ students, onUpda
     (student.className && student.className.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
+  // Calculate student counts per class
+  const studentCounts = students.reduce((acc, student) => {
+    if (student.className) {
+      acc[student.className] = (acc[student.className] || 0) + 1;
+    }
+    return acc;
+  }, {} as Record<string, number>);
+
   // --- Student Actions ---
 
   const handleAddStudent = (e: React.FormEvent) => {
@@ -165,7 +173,12 @@ export const StudentManager: React.FC<StudentManagerProps> = ({ students, onUpda
   };
 
   const handleDeleteClass = (className: string) => {
-    if (confirm(`Delete class "${className}"? This will remove the class assignment from all students in this class.`)) {
+    const count = studentCounts[className] || 0;
+    const confirmMessage = count > 0 
+        ? `Delete class "${className}"? This will remove the class assignment from ${count} student(s).`
+        : `Delete class "${className}"?`;
+
+    if (confirm(confirmMessage)) {
         // Remove from list
         onUpdateClasses(classes.filter(g => g !== className));
 
@@ -273,44 +286,82 @@ export const StudentManager: React.FC<StudentManagerProps> = ({ students, onUpda
                      
                      <div className="max-h-48 overflow-y-auto space-y-2 pr-2">
                         {classes.length === 0 && <p className="text-sm text-gray-500 text-center py-2">No classes created yet.</p>}
-                        {classes.map(className => (
-                            <div key={className} className="flex items-center justify-between bg-gray-900/50 p-2 rounded border border-gray-700/50">
-                                {editingClass === className ? (
-                                    <div className="flex items-center gap-2 flex-1 mr-2">
-                                        <input 
-                                            type="text" 
-                                            value={editClassValue}
-                                            onChange={(e) => setEditClassValue(e.target.value)}
-                                            className="flex-1 bg-gray-800 border border-gray-600 rounded px-2 py-1 text-sm text-white focus:ring-1 focus:ring-indigo-500 outline-none"
-                                            autoFocus
-                                        />
-                                        <button onClick={handleRenameClass} className="text-green-400 hover:bg-green-400/10 p-1 rounded"><Check className="w-4 h-4" /></button>
-                                        <button onClick={() => setEditingClass(null)} className="text-red-400 hover:bg-red-400/10 p-1 rounded"><X className="w-4 h-4" /></button>
-                                    </div>
-                                ) : (
-                                    <span className="text-gray-200 text-sm font-medium pl-1">{className}</span>
-                                )}
-                                
-                                {editingClass !== className && (
-                                    <div className="flex items-center gap-1">
-                                        <button 
-                                            onClick={() => startEditingClass(className)}
-                                            className="p-1.5 text-gray-500 hover:text-indigo-400 hover:bg-gray-800 rounded"
-                                            title="Rename"
-                                        >
-                                            <Edit2 className="w-3.5 h-3.5" />
-                                        </button>
-                                        <button 
-                                            onClick={() => handleDeleteClass(className)}
-                                            className="p-1.5 text-gray-500 hover:text-red-400 hover:bg-gray-800 rounded"
-                                            title="Delete"
-                                        >
-                                            <Trash2 className="w-3.5 h-3.5" />
-                                        </button>
-                                    </div>
-                                )}
-                            </div>
-                        ))}
+                        {classes.map(className => {
+                            const isEditing = editingClass === className;
+                            const count = studentCounts[className] || 0;
+                            
+                            return (
+                                <div 
+                                    key={className} 
+                                    className={`flex items-center justify-between p-2 rounded border transition-colors ${
+                                        isEditing 
+                                            ? 'bg-indigo-900/30 border-indigo-500/50 shadow-sm' 
+                                            : 'bg-gray-900/50 border-gray-700/50 hover:bg-gray-800/50'
+                                    }`}
+                                >
+                                    {isEditing ? (
+                                        <div className="flex items-center gap-2 flex-1 mr-2 animate-in fade-in duration-200">
+                                            <input 
+                                                type="text" 
+                                                value={editClassValue}
+                                                onChange={(e) => setEditClassValue(e.target.value)}
+                                                className="flex-1 bg-gray-900 border border-indigo-500 rounded px-2 py-1 text-sm text-white focus:ring-1 focus:ring-indigo-400 outline-none"
+                                                autoFocus
+                                                onKeyDown={(e) => {
+                                                    if (e.key === 'Enter') handleRenameClass();
+                                                    if (e.key === 'Escape') setEditingClass(null);
+                                                }}
+                                            />
+                                            <button 
+                                                onClick={handleRenameClass} 
+                                                className="text-green-400 hover:bg-green-400/10 p-1 rounded transition-colors"
+                                                title="Save"
+                                            >
+                                                <Check className="w-4 h-4" />
+                                            </button>
+                                            <button 
+                                                onClick={() => setEditingClass(null)} 
+                                                className="text-red-400 hover:bg-red-400/10 p-1 rounded transition-colors"
+                                                title="Cancel"
+                                            >
+                                                <X className="w-4 h-4" />
+                                            </button>
+                                        </div>
+                                    ) : (
+                                        <div className="flex items-center gap-3 flex-1 overflow-hidden">
+                                            <span className="text-gray-200 text-sm font-medium truncate" title={className}>
+                                                {className}
+                                            </span>
+                                            {count > 0 && (
+                                                <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-800 text-gray-400 border border-gray-700" title={`${count} students in this class`}>
+                                                    <Users className="w-3 h-3 mr-1" />
+                                                    {count}
+                                                </span>
+                                            )}
+                                        </div>
+                                    )}
+                                    
+                                    {!isEditing && (
+                                        <div className="flex items-center gap-1">
+                                            <button 
+                                                onClick={() => startEditingClass(className)}
+                                                className="p-1.5 text-gray-500 hover:text-indigo-400 hover:bg-gray-800 rounded transition-colors"
+                                                title="Rename Class"
+                                            >
+                                                <Edit2 className="w-3.5 h-3.5" />
+                                            </button>
+                                            <button 
+                                                onClick={() => handleDeleteClass(className)}
+                                                className="p-1.5 text-gray-500 hover:text-red-400 hover:bg-gray-800 rounded transition-colors"
+                                                title={count > 0 ? "Delete (Affects Students)" : "Delete Class"}
+                                            >
+                                                <Trash2 className="w-3.5 h-3.5" />
+                                            </button>
+                                        </div>
+                                    )}
+                                </div>
+                            );
+                        })}
                      </div>
                  </div>
              )}
