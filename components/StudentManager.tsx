@@ -606,7 +606,7 @@ export const StudentManager: React.FC<StudentManagerProps> = ({
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
         
         {/* Add Student Card */}
-        <div className="xl:col-span-2 bg-gray-800 p-8 rounded-2xl shadow-soft border border-gray-700">
+        <div className="xl:col-span-2 bg-gray-800 p-8 rounded-2xl shadow-soft border border-gray-700 transition-colors hover:border-gray-600">
             <div className="flex justify-between items-start mb-6">
                 <h3 className="text-xl font-semibold text-white flex items-center gap-3">
                   <div className="p-2 bg-primary-500/10 rounded-lg">
@@ -618,7 +618,7 @@ export const StudentManager: React.FC<StudentManagerProps> = ({
                     variant="secondary" 
                     size="sm" 
                     onClick={() => setIsImportModalOpen(true)}
-                    className="gap-2"
+                    className="gap-2 active:scale-95"
                 >
                     <FileUp className="w-4 h-4" />
                     <span className="hidden sm:inline">Bulk Import</span>
@@ -630,7 +630,7 @@ export const StudentManager: React.FC<StudentManagerProps> = ({
                   {/* Photo Upload */}
                   <div className="flex-shrink-0">
                     <div 
-                      className="w-24 h-24 rounded-full bg-gray-900 border-2 border-dashed border-gray-700 flex items-center justify-center cursor-pointer hover:border-primary-500 transition-colors overflow-hidden relative group"
+                      className="w-24 h-24 rounded-full bg-gray-900 border-2 border-dashed border-gray-700 flex items-center justify-center cursor-pointer hover:border-primary-500 transition-all overflow-hidden relative group hover:scale-105"
                       onClick={() => fileInputRef.current?.click()}
                     >
                       {newPhoto ? (
@@ -639,7 +639,7 @@ export const StudentManager: React.FC<StudentManagerProps> = ({
                         <User className="w-8 h-8 text-gray-600 group-hover:text-primary-500 transition-colors" />
                       )}
                       <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                        <Upload className="w-5 h-5 text-white" />
+                        <Upload className="w-5 h-5 text-white animate-fade-in-up" />
                       </div>
                     </div>
                     <input 
@@ -659,34 +659,34 @@ export const StudentManager: React.FC<StudentManagerProps> = ({
                         placeholder="Full Name *"
                         value={newName}
                         onChange={(e) => setNewName(e.target.value)}
-                        className="w-full bg-gray-900 border-b-2 border-gray-700 text-gray-100 px-3 py-2 focus:border-primary-500 focus:outline-none transition-colors placeholder-gray-500"
+                        className="w-full bg-gray-900 border-b-2 border-gray-700 text-gray-100 px-3 py-2 focus:border-primary-500 focus:outline-none transition-colors placeholder-gray-500 hover:border-gray-600"
                       />
                        <div className="flex gap-2">
-                          <div className="relative w-full">
+                          <div className="relative w-full group">
                               <select
                                   value={newClass}
                                   onChange={(e) => setNewClass(e.target.value)}
-                                  className="w-full bg-gray-900 border-b-2 border-gray-700 text-gray-100 px-3 py-2 pr-8 focus:border-primary-500 focus:outline-none appearance-none transition-colors cursor-pointer"
+                                  className="w-full bg-gray-900 border-b-2 border-gray-700 text-gray-100 px-3 py-2 pr-8 focus:border-primary-500 focus:outline-none appearance-none transition-colors cursor-pointer hover:border-gray-600"
                               >
                                   <option value="">Select Class...</option>
                                   {classes.map(g => (
                                       <option key={g} value={g}>{g}</option>
                                   ))}
                               </select>
-                              <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 pointer-events-none" />
+                              <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 pointer-events-none group-hover:text-gray-300 transition-colors" />
                           </div>
                           
                           <button
                             type="button"
                             onClick={() => setAutoClass(!autoClass)}
-                            className={`p-2 rounded-lg border transition-all flex-shrink-0 ${
+                            className={`p-2 rounded-lg border transition-all flex-shrink-0 active:scale-95 ${
                                 autoClass 
                                 ? 'bg-primary-500/10 border-primary-500/20 text-primary-400' 
                                 : 'bg-gray-800 border-gray-700 text-gray-600 hover:text-gray-400'
                             }`}
                             title={autoClass ? "Auto-assignment active" : "Enable auto-assignment"}
                           >
-                            <Sparkles className="w-5 h-5" />
+                            <Sparkles className={`w-5 h-5 ${autoClass ? 'animate-pulse-slow' : ''}`} />
                           </button>
                        </div>
                     </div>
@@ -697,14 +697,14 @@ export const StudentManager: React.FC<StudentManagerProps> = ({
                           title="Birthday"
                           value={newBirthday}
                           onChange={(e) => setNewBirthday(e.target.value)}
-                          className="w-full bg-gray-900 border-b-2 border-gray-700 text-gray-100 px-3 py-2 focus:border-primary-500 focus:outline-none text-gray-400 placeholder-gray-500"
+                          className="w-full bg-gray-900 border-b-2 border-gray-700 text-gray-100 px-3 py-2 focus:border-primary-500 focus:outline-none text-gray-400 placeholder-gray-500 hover:border-gray-600"
                         />
                          <input
                           type="text"
                           placeholder="Guardian Name"
                           value={newGuardian}
                           onChange={(e) => setNewGuardian(e.target.value)}
-                          className="w-full bg-gray-900 border-b-2 border-gray-700 text-gray-100 px-3 py-2 focus:border-primary-500 focus:outline-none placeholder-gray-500"
+                          className="w-full bg-gray-900 border-b-2 border-gray-700 text-gray-100 px-3 py-2 focus:border-primary-500 focus:outline-none placeholder-gray-500 hover:border-gray-600"
                         />
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -713,21 +713,21 @@ export const StudentManager: React.FC<StudentManagerProps> = ({
                             placeholder="Guardian Contact Info"
                             value={newGuardianContact}
                             onChange={(e) => setNewGuardianContact(e.target.value)}
-                            className="w-full bg-gray-900 border-b-2 border-gray-700 text-gray-100 px-3 py-2 focus:border-primary-500 focus:outline-none placeholder-gray-500"
+                            className="w-full bg-gray-900 border-b-2 border-gray-700 text-gray-100 px-3 py-2 focus:border-primary-500 focus:outline-none placeholder-gray-500 hover:border-gray-600"
                         />
                         <input
                             type="text"
                             placeholder="Address"
                             value={newAddress}
                             onChange={(e) => setNewAddress(e.target.value)}
-                            className="w-full bg-gray-900 border-b-2 border-gray-700 text-gray-100 px-3 py-2 focus:border-primary-500 focus:outline-none placeholder-gray-500"
+                            className="w-full bg-gray-900 border-b-2 border-gray-700 text-gray-100 px-3 py-2 focus:border-primary-500 focus:outline-none placeholder-gray-500 hover:border-gray-600"
                         />
                     </div>
                   </div>
                 </div>
 
                 <div className="flex justify-end pt-2">
-                    <Button type="submit" disabled={!newName.trim()} className="w-full sm:w-auto">
+                    <Button type="submit" disabled={!newName.trim()} className="w-full sm:w-auto active:scale-95">
                       Add to Roster
                     </Button>
                 </div>
@@ -735,7 +735,7 @@ export const StudentManager: React.FC<StudentManagerProps> = ({
         </div>
 
         {/* Class Management Card */}
-        <div className="bg-gray-800 rounded-2xl shadow-soft border border-gray-700 flex flex-col overflow-hidden h-full">
+        <div className="bg-gray-800 rounded-2xl shadow-soft border border-gray-700 flex flex-col overflow-hidden h-full hover:border-gray-600 transition-all duration-300">
              <div 
                 className="p-6 flex items-center justify-between cursor-pointer hover:bg-gray-700/50 transition-colors border-b border-gray-700"
                 onClick={() => setIsClassMgrOpen(!isClassMgrOpen)}
@@ -758,9 +758,9 @@ export const StudentManager: React.FC<StudentManagerProps> = ({
                         placeholder="New Class Name" 
                         value={newClassName}
                         onChange={(e) => setNewClassName(e.target.value)}
-                        className="flex-1 bg-gray-900 border border-gray-700 text-gray-100 rounded-lg px-4 py-2 focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 outline-none text-sm placeholder-gray-500"
+                        className="flex-1 bg-gray-900 border border-gray-700 text-gray-100 rounded-lg px-4 py-2 focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 outline-none text-sm placeholder-gray-500 hover:border-gray-600 transition-colors"
                     />
-                    <Button type="submit" disabled={!newClassName.trim()} size="sm" variant="secondary">Create</Button>
+                    <Button type="submit" disabled={!newClassName.trim()} size="sm" variant="secondary" className="active:scale-95">Create</Button>
                  </form>
                  
                  <div className="overflow-y-auto pr-2 space-y-2 max-h-[250px] custom-scrollbar">
@@ -772,7 +772,7 @@ export const StudentManager: React.FC<StudentManagerProps> = ({
                             <div 
                                 key={className} 
                                 onClick={() => handleClassClick(className)}
-                                className="group flex items-center justify-between p-3 rounded-xl border border-gray-700 bg-gray-800 hover:border-primary-500/50 hover:shadow-sm cursor-pointer transition-all"
+                                className="group flex items-center justify-between p-3 rounded-xl border border-gray-700 bg-gray-800 hover:border-primary-500/50 hover:shadow-sm hover:scale-[1.02] cursor-pointer transition-all duration-200"
                             >
                                 <div className="flex items-center gap-3 overflow-hidden">
                                     <span className="text-gray-300 text-sm font-medium truncate group-hover:text-primary-400 transition-colors">
@@ -790,7 +790,7 @@ export const StudentManager: React.FC<StudentManagerProps> = ({
                                           {count}
                                       </span>
                                   )}
-                                  <Edit2 className="w-3.5 h-3.5 text-gray-600 group-hover:text-primary-500" />
+                                  <Edit2 className="w-3.5 h-3.5 text-gray-600 group-hover:text-primary-500 opacity-0 group-hover:opacity-100 transition-all transform translate-x-2 group-hover:translate-x-0" />
                                 </div>
                             </div>
                         );
@@ -801,7 +801,7 @@ export const StudentManager: React.FC<StudentManagerProps> = ({
       </div>
 
       {/* Roster List */}
-      <div className="bg-gray-800 rounded-2xl shadow-soft border border-gray-700 overflow-hidden">
+      <div className="bg-gray-800 rounded-2xl shadow-soft border border-gray-700 overflow-hidden hover:border-gray-600 transition-all duration-300">
         {/* Header */}
         <div className="px-8 py-6 border-b border-gray-700 flex flex-col md:flex-row justify-between items-center gap-6">
             <h3 className="text-xl font-bold text-white flex items-center gap-2">
@@ -814,7 +814,7 @@ export const StudentManager: React.FC<StudentManagerProps> = ({
                     placeholder="Search students..." 
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full bg-gray-900 border border-gray-700 text-sm text-gray-100 rounded-xl pl-10 pr-4 py-2.5 focus:ring-2 focus:ring-primary-900 focus:border-primary-700 outline-none transition-all placeholder-gray-500"
+                    className="w-full bg-gray-900 border border-gray-700 text-sm text-gray-100 rounded-xl pl-10 pr-4 py-2.5 focus:ring-2 focus:ring-primary-900 focus:border-primary-700 outline-none transition-all placeholder-gray-500 hover:bg-gray-800"
                 />
             </div>
         </div>
@@ -824,10 +824,10 @@ export const StudentManager: React.FC<StudentManagerProps> = ({
             {selectedIds.size > 0 ? (
                  <div className="flex flex-col sm:flex-row sm:items-center justify-between w-full gap-4 animate-in fade-in slide-in-from-top-1 duration-200">
                     <div className="flex items-center gap-3">
-                         <span className="text-primary-400 font-medium text-sm bg-primary-900/30 px-3 py-1 rounded-full border border-primary-900">{selectedIds.size} selected</span>
+                         <span className="text-primary-400 font-medium text-sm bg-primary-900/30 px-3 py-1 rounded-full border border-primary-900 animate-pulse-soft">{selectedIds.size} selected</span>
                          <button 
                             onClick={() => setSelectedIds(new Set())}
-                            className="text-xs text-gray-500 hover:text-gray-300 underline decoration-gray-700 hover:decoration-gray-500 underline-offset-2"
+                            className="text-xs text-gray-500 hover:text-gray-300 underline decoration-gray-700 hover:decoration-gray-500 underline-offset-2 transition-colors"
                          >
                             Clear Selection
                          </button>
@@ -837,18 +837,18 @@ export const StudentManager: React.FC<StudentManagerProps> = ({
                          <select
                             value={bulkClassId}
                             onChange={(e) => setBulkClassId(e.target.value)}
-                            className="bg-gray-800 border border-gray-700 text-xs rounded-lg px-3 py-2 text-gray-300 focus:ring-2 focus:ring-primary-900 outline-none shadow-sm"
+                            className="bg-gray-800 border border-gray-700 text-xs rounded-lg px-3 py-2 text-gray-300 focus:ring-2 focus:ring-primary-900 outline-none shadow-sm cursor-pointer hover:bg-gray-700 transition-colors"
                         >
                             <option value="">Move to Class...</option>
                             {classes.map(g => (
                                 <option key={g} value={g}>{g}</option>
                             ))}
                         </select>
-                        <Button size="sm" onClick={handleBulkAssignClass} disabled={!bulkClassId} variant="secondary">
+                        <Button size="sm" onClick={handleBulkAssignClass} disabled={!bulkClassId} variant="secondary" className="active:scale-95">
                             Apply
                         </Button>
                         <div className="w-px h-6 bg-gray-700 mx-1"></div>
-                        <Button size="sm" variant="danger" onClick={handleBulkDelete}>
+                        <Button size="sm" variant="danger" onClick={handleBulkDelete} className="active:scale-95">
                             Delete
                         </Button>
                     </div>
@@ -866,7 +866,7 @@ export const StudentManager: React.FC<StudentManagerProps> = ({
                      </div>
                      <label 
                         htmlFor="select-all" 
-                        className="text-sm font-medium text-gray-500 cursor-pointer select-none hover:text-gray-300"
+                        className="text-sm font-medium text-gray-500 cursor-pointer select-none hover:text-gray-300 transition-colors"
                      >
                         Select All
                      </label>
@@ -877,12 +877,12 @@ export const StudentManager: React.FC<StudentManagerProps> = ({
         {/* List */}
         <ul className="divide-y divide-gray-700">
           {filteredStudents.length === 0 ? (
-            <li className="px-6 py-12 text-center text-gray-500 flex flex-col items-center">
+            <li className="px-6 py-12 text-center text-gray-500 flex flex-col items-center animate-fade-in">
               <Users className="w-12 h-12 text-gray-700 mb-3" />
               <p>{students.length === 0 ? "Your roster is empty." : "No matching students found."}</p>
             </li>
           ) : (
-            filteredStudents.map(student => {
+            filteredStudents.map((student, idx) => {
               const isSelected = selectedIds.has(student.id);
               const age = student.birthday ? getAge(student.birthday) : null;
               
@@ -891,8 +891,9 @@ export const StudentManager: React.FC<StudentManagerProps> = ({
                     key={student.id} 
                     className={`
                         px-8 py-4 flex items-center justify-between transition-all duration-200 group
-                        ${isSelected ? 'bg-primary-900/10' : 'hover:bg-gray-700/30'}
+                        ${isSelected ? 'bg-primary-900/10' : 'hover:bg-gray-700/30 hover:pl-9'}
                     `}
+                    style={{ animationDelay: `${idx * 20}ms` }}
                 >
                   <div className="flex items-center gap-5 flex-1">
                     <input
@@ -903,7 +904,7 @@ export const StudentManager: React.FC<StudentManagerProps> = ({
                     />
                     
                     {/* Avatar */}
-                    <div className="relative w-10 h-10 rounded-full bg-gray-700 flex-shrink-0 overflow-hidden border border-gray-600 flex items-center justify-center text-gray-400">
+                    <div className="relative w-10 h-10 rounded-full bg-gray-700 flex-shrink-0 overflow-hidden border border-gray-600 flex items-center justify-center text-gray-400 group-hover:border-gray-500 transition-colors">
                         {student.photo ? (
                             <img src={student.photo} alt={student.name} className="w-full h-full object-cover" />
                         ) : (
@@ -916,7 +917,7 @@ export const StudentManager: React.FC<StudentManagerProps> = ({
                         onClick={() => handleStudentClick(student)}
                     >
                       <div className="flex items-center gap-3">
-                          <p className={`font-semibold text-base ${isSelected ? 'text-primary-400' : 'text-gray-100'}`}>
+                          <p className={`font-semibold text-base transition-colors ${isSelected ? 'text-primary-400' : 'text-gray-100 group-hover:text-white'}`}>
                             {student.name}
                           </p>
                           {age !== null && (
@@ -925,7 +926,7 @@ export const StudentManager: React.FC<StudentManagerProps> = ({
                             </span>
                           )}
                           {student.className && (
-                            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide bg-gray-900 text-gray-400 border border-gray-700">
+                            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide bg-gray-900 text-gray-400 border border-gray-700 group-hover:border-gray-600 transition-colors">
                                 {student.className}
                             </span>
                           )}
@@ -948,7 +949,7 @@ export const StudentManager: React.FC<StudentManagerProps> = ({
                   
                   <button
                     onClick={(e) => handleRemoveStudent(student.id, e)}
-                    className="p-2 text-gray-600 hover:text-red-400 hover:bg-red-900/20 rounded-lg transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100"
+                    className="p-2 text-gray-600 hover:text-red-400 hover:bg-red-900/20 rounded-lg transition-all opacity-0 group-hover:opacity-100 focus:opacity-100 transform translate-x-2 group-hover:translate-x-0"
                     title="Remove Student"
                   >
                     <Trash2 className="w-4 h-4" />
@@ -962,7 +963,7 @@ export const StudentManager: React.FC<StudentManagerProps> = ({
 
       {/* Class Details Modal */}
       {viewingClass && (
-           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={() => setViewingClass(null)}>
+           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200" onClick={() => setViewingClass(null)}>
               <div 
                   className="bg-gray-800 w-full max-w-lg rounded-2xl shadow-2xl border border-gray-700 overflow-hidden flex flex-col max-h-[85vh] animate-in zoom-in-95 duration-200" 
                   onClick={e => e.stopPropagation()}
@@ -1036,11 +1037,11 @@ export const StudentManager: React.FC<StudentManagerProps> = ({
                                     <>
                                         {/* Class Stats */}
                                         <div className="grid grid-cols-2 gap-4">
-                                            <div className="bg-gray-900 rounded-2xl p-4 flex flex-col items-center justify-center text-center border border-gray-700">
+                                            <div className="bg-gray-900 rounded-2xl p-4 flex flex-col items-center justify-center text-center border border-gray-700 hover:border-gray-600 transition-colors">
                                                  <span className="text-3xl font-bold text-white mb-1">{stats.studentCount}</span>
                                                  <span className="text-xs font-semibold uppercase tracking-wide text-gray-500">Enrolled</span>
                                             </div>
-                                            <div className="bg-gray-900 rounded-2xl p-4 flex flex-col items-center justify-center text-center border border-gray-700">
+                                            <div className="bg-gray-900 rounded-2xl p-4 flex flex-col items-center justify-center text-center border border-gray-700 hover:border-gray-600 transition-colors">
                                                  <span className={`text-3xl font-bold mb-1 ${stats.percentage > 80 ? 'text-green-500' : 'text-white'}`}>{stats.percentage}%</span>
                                                  <span className="text-xs font-semibold uppercase tracking-wide text-gray-500">Attendance</span>
                                             </div>
@@ -1056,9 +1057,9 @@ export const StudentManager: React.FC<StudentManagerProps> = ({
 
                                         {/* Attendance Insights */}
                                         {sessions.length > 0 && stats.students.length > 0 && (
-                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 animate-fade-in-up">
                                                 {/* Top 3 */}
-                                                <div className="bg-gray-900/50 rounded-xl p-4 border border-gray-700/50">
+                                                <div className="bg-gray-900/50 rounded-xl p-4 border border-gray-700/50 hover:bg-gray-900 transition-colors">
                                                     <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3 flex items-center gap-2">
                                                         <Trophy className="w-3 h-3 text-yellow-500" /> Top Attendance
                                                     </h4>
@@ -1078,7 +1079,7 @@ export const StudentManager: React.FC<StudentManagerProps> = ({
                                                 </div>
 
                                                 {/* Bottom 3 - Filtered for < 20% */}
-                                                <div className="bg-gray-900/50 rounded-xl p-4 border border-gray-700/50">
+                                                <div className="bg-gray-900/50 rounded-xl p-4 border border-gray-700/50 hover:bg-gray-900 transition-colors">
                                                     <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3 flex items-center gap-2">
                                                         <TrendingDown className="w-3 h-3 text-red-500" /> Needs Attention
                                                     </h4>
@@ -1088,7 +1089,7 @@ export const StudentManager: React.FC<StudentManagerProps> = ({
                                                                 <li key={s.id} className="flex items-center justify-between text-sm">
                                                                     <div className="flex items-center gap-2">
                                                                         <div className="w-4 flex justify-center">
-                                                                            <div className="w-1.5 h-1.5 rounded-full bg-red-500/50"></div>
+                                                                            <div className="w-1.5 h-1.5 rounded-full bg-red-500/50 animate-pulse"></div>
                                                                         </div>
                                                                         <span className="text-gray-300 truncate max-w-[100px]">{s.name}</span>
                                                                     </div>
@@ -1120,7 +1121,7 @@ export const StudentManager: React.FC<StudentManagerProps> = ({
                                                         {stats.students.map(s => {
                                                             const age = s.birthday ? getAge(s.birthday) : null;
                                                             return (
-                                                                <li key={s.id} className="px-4 py-3 text-sm text-gray-300 flex justify-between items-center hover:bg-gray-700/50">
+                                                                <li key={s.id} className="px-4 py-3 text-sm text-gray-300 flex justify-between items-center hover:bg-gray-700/50 transition-colors">
                                                                     <div className="flex items-center gap-3">
                                                                         <div className="w-6 h-6 rounded-full bg-gray-600 overflow-hidden flex items-center justify-center">
                                                                             {s.photo ? <img src={s.photo} className="w-full h-full object-cover"/> : <User className="w-3 h-3 text-gray-400"/>}
@@ -1146,16 +1147,16 @@ export const StudentManager: React.FC<StudentManagerProps> = ({
                                 {isEditingClass ? (
                                     <>
                                         <Button variant="ghost" onClick={() => setIsEditingClass(false)}>Cancel</Button>
-                                        <Button onClick={handleSaveClassEdit}>
+                                        <Button onClick={handleSaveClassEdit} className="active:scale-95">
                                             Save Changes
                                         </Button>
                                     </>
                                 ) : (
                                     <>
-                                        <Button variant="danger" onClick={() => handleDeleteClass(viewingClass)} className="mr-auto">
+                                        <Button variant="danger" onClick={() => handleDeleteClass(viewingClass)} className="mr-auto active:scale-95">
                                             Delete
                                         </Button>
-                                        <Button variant="secondary" onClick={handleStartEditClass}>
+                                        <Button variant="secondary" onClick={handleStartEditClass} className="active:scale-95">
                                             Edit Details
                                         </Button>
                                     </>
@@ -1170,7 +1171,7 @@ export const StudentManager: React.FC<StudentManagerProps> = ({
 
       {/* Student Detail/Edit Modal */}
       {viewingStudent && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={() => setViewingStudent(null)}>
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200" onClick={() => setViewingStudent(null)}>
               <div 
                   className="bg-gray-800 w-full max-w-lg rounded-2xl shadow-2xl border border-gray-700 overflow-hidden flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-200" 
                   onClick={e => e.stopPropagation()}
@@ -1191,7 +1192,7 @@ export const StudentManager: React.FC<StudentManagerProps> = ({
                         <div className="space-y-6">
                             <div className="flex justify-center">
                                 <div 
-                                    className="w-28 h-28 rounded-full bg-gray-900 border-2 border-dashed border-gray-700 flex items-center justify-center cursor-pointer hover:border-primary-500 transition-colors overflow-hidden relative group"
+                                    className="w-28 h-28 rounded-full bg-gray-900 border-2 border-dashed border-gray-700 flex items-center justify-center cursor-pointer hover:border-primary-500 transition-all overflow-hidden relative group hover:scale-105"
                                     onClick={() => editFileInputRef.current?.click()}
                                 >
                                     {editFormData.photo ? (
@@ -1200,7 +1201,7 @@ export const StudentManager: React.FC<StudentManagerProps> = ({
                                         <User className="w-10 h-10 text-gray-600" />
                                     )}
                                     <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                                        <Edit2 className="w-6 h-6 text-white" />
+                                        <Edit2 className="w-6 h-6 text-white animate-fade-in-up" />
                                     </div>
                                 </div>
                                 <input 
@@ -1289,7 +1290,7 @@ export const StudentManager: React.FC<StudentManagerProps> = ({
                             <div className="flex items-center gap-6">
                                 <div className="w-24 h-24 rounded-full bg-gray-700 overflow-hidden flex-shrink-0 border-2 border-gray-600 shadow-lg">
                                     {viewingStudent.photo ? (
-                                        <img src={viewingStudent.photo} alt={viewingStudent.name} className="w-full h-full object-cover" />
+                                        <img src={viewingStudent.photo} alt={viewingStudent.name} className="w-full h-full object-cover transition-transform duration-500 hover:scale-110" />
                                     ) : (
                                         <div className="w-full h-full flex items-center justify-center bg-gray-700">
                                             <User className="w-8 h-8 text-gray-500" />
@@ -1321,14 +1322,14 @@ export const StudentManager: React.FC<StudentManagerProps> = ({
                             {(() => {
                                 const stats = getStudentStats(viewingStudent.id);
                                 return (
-                                    <div className="bg-gray-900 rounded-2xl p-5 border border-gray-700">
+                                    <div className="bg-gray-900 rounded-2xl p-5 border border-gray-700 hover:border-gray-600 transition-colors">
                                         <div className="flex items-center justify-between mb-4">
                                             <span className="text-xs font-bold uppercase tracking-wider text-gray-500">Attendance</span>
                                         </div>
                                         <div className="flex items-center gap-8">
                                             <div className="flex items-center gap-4">
                                                 <div className={`
-                                                    w-16 h-16 rounded-full flex items-center justify-center font-bold text-xl border-4
+                                                    w-16 h-16 rounded-full flex items-center justify-center font-bold text-xl border-4 transition-all duration-500 hover:scale-110
                                                     ${stats.percentage >= 80 ? 'border-green-900/50 text-green-500' : 
                                                       stats.percentage >= 50 ? 'border-yellow-900/50 text-yellow-500' : 'border-red-900/50 text-red-500'}
                                                 `}>
@@ -1356,7 +1357,7 @@ export const StudentManager: React.FC<StudentManagerProps> = ({
                             })()}
 
                             <div className="space-y-4">
-                                <div className="flex items-center gap-4 p-3 rounded-xl bg-gray-900 border border-gray-700">
+                                <div className="flex items-center gap-4 p-3 rounded-xl bg-gray-900 border border-gray-700 hover:bg-gray-800 transition-colors">
                                     <div className="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center">
                                         <User className="w-5 h-5 text-gray-500" />
                                     </div>
@@ -1365,7 +1366,7 @@ export const StudentManager: React.FC<StudentManagerProps> = ({
                                         <p className="text-gray-200 font-medium">{viewingStudent.guardian || 'N/A'}</p>
                                     </div>
                                 </div>
-                                <div className="flex items-center gap-4 p-3 rounded-xl bg-gray-900 border border-gray-700">
+                                <div className="flex items-center gap-4 p-3 rounded-xl bg-gray-900 border border-gray-700 hover:bg-gray-800 transition-colors">
                                     <div className="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center">
                                         <Phone className="w-5 h-5 text-gray-500" />
                                     </div>
@@ -1375,7 +1376,7 @@ export const StudentManager: React.FC<StudentManagerProps> = ({
                                     </div>
                                 </div>
                                 {viewingStudent.birthday && (
-                                    <div className="flex items-center gap-4 p-3 rounded-xl bg-gray-900 border border-gray-700">
+                                    <div className="flex items-center gap-4 p-3 rounded-xl bg-gray-900 border border-gray-700 hover:bg-gray-800 transition-colors">
                                         <div className="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center">
                                             <Cake className="w-5 h-5 text-gray-500" />
                                         </div>
@@ -1386,7 +1387,7 @@ export const StudentManager: React.FC<StudentManagerProps> = ({
                                     </div>
                                 )}
                                 {viewingStudent.address && (
-                                    <div className="flex items-center gap-4 p-3 rounded-xl bg-gray-900 border border-gray-700">
+                                    <div className="flex items-center gap-4 p-3 rounded-xl bg-gray-900 border border-gray-700 hover:bg-gray-800 transition-colors">
                                         <div className="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center">
                                             <MapPin className="w-5 h-5 text-gray-500" />
                                         </div>
@@ -1415,16 +1416,16 @@ export const StudentManager: React.FC<StudentManagerProps> = ({
                      {isEditingDetails ? (
                          <>
                             <Button variant="ghost" onClick={handleCancelEdit}>Cancel</Button>
-                            <Button onClick={handleSaveEdit}>
+                            <Button onClick={handleSaveEdit} className="active:scale-95">
                                 Save Changes
                             </Button>
                          </>
                      ) : (
                          <>
-                            <Button variant="danger" onClick={() => handleRemoveStudent(viewingStudent.id)} className="mr-auto">
+                            <Button variant="danger" onClick={() => handleRemoveStudent(viewingStudent.id)} className="mr-auto active:scale-95">
                                 Delete
                             </Button>
-                            <Button variant="secondary" onClick={handleStartEdit}>
+                            <Button variant="secondary" onClick={handleStartEdit} className="active:scale-95">
                                 Edit Profile
                             </Button>
                          </>
@@ -1436,7 +1437,7 @@ export const StudentManager: React.FC<StudentManagerProps> = ({
 
       {/* Bulk Import Modal */}
       {isImportModalOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={() => setIsImportModalOpen(false)}>
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200" onClick={() => setIsImportModalOpen(false)}>
               <div 
                   className="bg-gray-800 w-full max-w-2xl rounded-2xl shadow-2xl border border-gray-700 flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-200"
                   onClick={e => e.stopPropagation()}
@@ -1466,7 +1467,7 @@ export const StudentManager: React.FC<StudentManagerProps> = ({
                                         variant="secondary" 
                                         size="sm"
                                         onClick={() => fileImportRef.current?.click()}
-                                        className="w-full sm:w-auto"
+                                        className="w-full sm:w-auto active:scale-95"
                                     >
                                         <Upload className="w-4 h-4 mr-2" />
                                         Upload CSV
@@ -1475,7 +1476,7 @@ export const StudentManager: React.FC<StudentManagerProps> = ({
                                         variant="ghost" 
                                         size="sm"
                                         onClick={downloadTemplate}
-                                        className="text-gray-500 hover:text-gray-300"
+                                        className="text-gray-500 hover:text-gray-300 active:scale-95"
                                     >
                                         <Download className="w-4 h-4 mr-2" />
                                         Template
@@ -1489,17 +1490,17 @@ export const StudentManager: React.FC<StudentManagerProps> = ({
                             value={importText}
                             onChange={(e) => setImportText(e.target.value)}
                             placeholder="Enter names (one per line)&#10;OR paste CSV data: Name, Class, Guardian, Contact, Birthday, Address"
-                            className="w-full h-48 bg-gray-900 border border-gray-700 text-gray-100 rounded-xl p-4 focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 outline-none text-sm font-mono placeholder-gray-600 leading-relaxed resize-none"
+                            className="w-full h-48 bg-gray-900 border border-gray-700 text-gray-100 rounded-xl p-4 focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 outline-none text-sm font-mono placeholder-gray-600 leading-relaxed resize-none hover:border-gray-600 transition-colors"
                         />
                       </div>
 
                       {parsedImportData.length > 0 && (
-                          <div className="space-y-3">
+                          <div className="space-y-3 animate-fade-in-up">
                               <h4 className="text-sm font-bold text-gray-400 uppercase tracking-wide flex justify-between">
                                   <span>Preview ({parsedImportData.length} Students)</span>
                                   <span className="text-primary-400">Ready to Import</span>
                               </h4>
-                              <div className="bg-gray-900 rounded-xl border border-gray-700 overflow-hidden max-h-48 overflow-y-auto">
+                              <div className="bg-gray-900 rounded-xl border border-gray-700 overflow-hidden max-h-48 overflow-y-auto custom-scrollbar">
                                   <table className="w-full text-sm text-left">
                                       <thead className="text-xs text-gray-500 uppercase bg-gray-800 sticky top-0">
                                           <tr>
@@ -1510,7 +1511,7 @@ export const StudentManager: React.FC<StudentManagerProps> = ({
                                       </thead>
                                       <tbody className="divide-y divide-gray-800">
                                           {parsedImportData.map((s) => (
-                                              <tr key={s.id} className="text-gray-300">
+                                              <tr key={s.id} className="text-gray-300 hover:bg-gray-800 transition-colors">
                                                   <td className="px-4 py-2 font-medium">{s.name}</td>
                                                   <td className="px-4 py-2 text-gray-500">{s.className || '-'}</td>
                                                   <td className="px-4 py-2 text-gray-500">{s.guardian || '-'}</td>
@@ -1528,7 +1529,7 @@ export const StudentManager: React.FC<StudentManagerProps> = ({
 
                   <div className="px-8 py-6 bg-gray-900 border-t border-gray-700 flex justify-end gap-3">
                       <Button variant="ghost" onClick={() => setIsImportModalOpen(false)}>Cancel</Button>
-                      <Button onClick={handleImportSubmit} disabled={parsedImportData.length === 0}>
+                      <Button onClick={handleImportSubmit} disabled={parsedImportData.length === 0} className="active:scale-95">
                           Import {parsedImportData.length > 0 ? `${parsedImportData.length} Students` : ''}
                       </Button>
                   </div>
@@ -1547,7 +1548,7 @@ export const StudentManager: React.FC<StudentManagerProps> = ({
                 onClick={e => e.stopPropagation()}
             >
                 <div className="flex items-start gap-4">
-                    <div className="p-3 bg-red-900/20 rounded-full flex-shrink-0">
+                    <div className="p-3 bg-red-900/20 rounded-full flex-shrink-0 animate-pulse-soft">
                         <Trash2 className="w-6 h-6 text-red-500" />
                     </div>
                     <div>
@@ -1557,7 +1558,7 @@ export const StudentManager: React.FC<StudentManagerProps> = ({
                 </div>
                 <div className="flex gap-3 justify-end mt-2">
                     <Button variant="ghost" onClick={closeConfirmation}>Cancel</Button>
-                    <Button variant="danger" onClick={confirmation.onConfirm}>Delete</Button>
+                    <Button variant="danger" onClick={confirmation.onConfirm} className="active:scale-95">Delete</Button>
                 </div>
             </div>
         </div>

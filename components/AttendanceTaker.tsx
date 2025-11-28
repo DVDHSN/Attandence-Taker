@@ -155,8 +155,8 @@ export const AttendanceTaker: React.FC<AttendanceTakerProps> = ({
 
   if (students.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-24 text-gray-500">
-        <div className="w-16 h-16 bg-gray-800 rounded-full flex items-center justify-center mb-4 border border-gray-700">
+      <div className="flex flex-col items-center justify-center py-24 text-gray-500 animate-fade-in-up">
+        <div className="w-16 h-16 bg-gray-800 rounded-full flex items-center justify-center mb-4 border border-gray-700 shadow-soft">
            <User className="w-8 h-8 text-gray-600" />
         </div>
         <p className="text-lg font-medium text-gray-400">No students found.</p>
@@ -174,18 +174,18 @@ export const AttendanceTaker: React.FC<AttendanceTakerProps> = ({
   return (
     <div className="space-y-8 animate-fade-in relative">
       {error && (
-        <div className="bg-red-900/20 border border-red-900/50 text-red-400 p-4 rounded-xl flex items-center gap-3">
+        <div className="bg-red-900/20 border border-red-900/50 text-red-400 p-4 rounded-xl flex items-center gap-3 animate-slide-in">
             <AlertCircle className="w-5 h-5 shrink-0" />
             <p className="font-medium">{error}</p>
         </div>
       )}
 
       {/* Session Info Card */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-gray-800 p-6 rounded-2xl shadow-soft border border-gray-700">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-gray-800 p-6 rounded-2xl shadow-soft border border-gray-700 hover:border-gray-600 transition-colors duration-300">
         <div>
           <label className="block text-sm font-semibold text-gray-400 mb-2">Class Date <span className="text-red-500">*</span></label>
-          <div className="relative">
-            <Calendar className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+          <div className="relative group">
+            <Calendar className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 group-hover:text-primary-400 transition-colors" />
             <input
               type="date"
               value={date}
@@ -193,28 +193,28 @@ export const AttendanceTaker: React.FC<AttendanceTakerProps> = ({
                   setDate(e.target.value);
                   setError(null);
               }}
-              className="w-full bg-gray-900 border border-gray-700 text-gray-100 rounded-xl pl-10 pr-4 py-3 focus:ring-2 focus:ring-primary-900 focus:border-primary-500 outline-none transition-all placeholder-gray-500 font-medium"
+              className="w-full bg-gray-900 border border-gray-700 text-gray-100 rounded-xl pl-10 pr-4 py-3 focus:ring-2 focus:ring-primary-900 focus:border-primary-500 outline-none transition-all placeholder-gray-500 font-medium hover:bg-gray-800"
               required
             />
           </div>
         </div>
         <div>
           <label className="block text-sm font-semibold text-gray-400 mb-2">Lesson Topic <span className="text-gray-600 font-normal">(Optional)</span></label>
-          <div className="relative">
-            <BookOpen className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+          <div className="relative group">
+            <BookOpen className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 group-hover:text-primary-400 transition-colors" />
             <input
               type="text"
               placeholder="e.g. Noah's Ark"
               value={topic}
               onChange={(e) => setTopic(e.target.value)}
-              className="w-full bg-gray-900 border border-gray-700 text-gray-100 rounded-xl pl-10 pr-4 py-3 focus:ring-2 focus:ring-primary-900 focus:border-primary-500 outline-none transition-all placeholder-gray-500"
+              className="w-full bg-gray-900 border border-gray-700 text-gray-100 rounded-xl pl-10 pr-4 py-3 focus:ring-2 focus:ring-primary-900 focus:border-primary-500 outline-none transition-all placeholder-gray-500 hover:bg-gray-800"
             />
           </div>
         </div>
       </div>
 
       {/* Control Bar - Sticky on Desktop */}
-      <div className="md:sticky md:top-2 z-20 flex flex-col xl:flex-row justify-between items-center gap-4 bg-gray-900 p-4 rounded-xl border border-gray-800 shadow-soft">
+      <div className="md:sticky md:top-2 z-20 flex flex-col xl:flex-row justify-between items-center gap-4 bg-gray-900 p-4 rounded-xl border border-gray-800 shadow-soft transition-all duration-300">
         
         {/* Left Actions */}
         <div className="flex flex-col sm:flex-row items-center gap-4 w-full xl:w-auto">
@@ -227,7 +227,7 @@ export const AttendanceTaker: React.FC<AttendanceTakerProps> = ({
 
           <div className="flex items-center gap-3 w-full sm:w-auto">
               <span className="text-sm text-gray-500 font-medium whitespace-nowrap">Sort by:</span>
-              <div className="relative w-full sm:w-48">
+              <div className="relative w-full sm:w-48 group">
                 <select
                   value={sortBy}
                   onChange={(e) => setSortBy(e.target.value as SortOption)}
@@ -237,7 +237,7 @@ export const AttendanceTaker: React.FC<AttendanceTakerProps> = ({
                   <option value="class_alpha">Class (Alphabetical)</option>
                   <option value="class_age">Class (Age)</option>
                 </select>
-                <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 pointer-events-none" />
+                <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 pointer-events-none group-hover:text-gray-300 transition-colors" />
               </div>
           </div>
         </div>
@@ -245,23 +245,23 @@ export const AttendanceTaker: React.FC<AttendanceTakerProps> = ({
         {/* Right Stats & Save */}
         <div className="flex flex-col-reverse sm:flex-row items-center gap-4 border-t xl:border-t-0 border-gray-800 pt-4 xl:pt-0 w-full xl:w-auto justify-end">
           <div className="flex items-center gap-4 text-sm font-medium justify-between sm:justify-end w-full sm:w-auto">
-            <div className="flex items-center gap-1.5">
-               <div className="w-2 h-2 rounded-full bg-green-500"></div>
+            <div className="flex items-center gap-1.5 transition-transform hover:scale-105">
+               <div className="w-2 h-2 rounded-full bg-green-500 shadow-glow shadow-green-500/50"></div>
                <span className="text-gray-300">{presentCount} Present</span>
             </div>
-            <div className="flex items-center gap-1.5">
-               <div className="w-2 h-2 rounded-full bg-red-500"></div>
+            <div className="flex items-center gap-1.5 transition-transform hover:scale-105">
+               <div className="w-2 h-2 rounded-full bg-red-500 shadow-glow shadow-red-500/50"></div>
                <span className="text-gray-500">{absentCount} Absent</span>
             </div>
             {unmarkedCount > 0 && (
-              <div className="flex items-center gap-1.5">
+              <div className="flex items-center gap-1.5 transition-transform hover:scale-105">
                   <div className="w-2 h-2 rounded-full bg-gray-600"></div>
                   <span className="text-gray-500">{unmarkedCount} Unmarked</span>
               </div>
             )}
           </div>
 
-          <Button onClick={handleSaveClick} className="w-full sm:w-auto shadow-lg shadow-primary-500/20">
+          <Button onClick={handleSaveClick} className="w-full sm:w-auto shadow-lg shadow-primary-500/20 active:scale-95">
               <Save className="w-4 h-4 mr-2" />
               Save
           </Button>
@@ -281,16 +281,16 @@ export const AttendanceTaker: React.FC<AttendanceTakerProps> = ({
               key={student.id}
               onClick={() => toggleStatus(student.id)}
               className={`
-                cursor-pointer p-4 rounded-2xl border transition-all duration-200 flex items-center gap-4 select-none group
+                cursor-pointer p-4 rounded-2xl border transition-all duration-200 flex items-center gap-4 select-none group relative overflow-hidden active:scale-95 hover:scale-[1.02]
                 ${isPresent 
                   ? 'bg-gray-800 border-green-900/50 shadow-md shadow-green-900/10' 
                   : isAbsent
                   ? 'bg-gray-800 border-red-900/50 shadow-md shadow-red-900/10'
-                  : 'bg-gray-800 border-gray-700 hover:border-gray-600'}
+                  : 'bg-gray-800 border-gray-700 hover:border-gray-500 hover:shadow-lg hover:shadow-black/20'}
               `}
             >
-              <div className={`relative w-12 h-12 rounded-full flex-shrink-0 overflow-hidden border ${
-                  isPresent ? 'border-green-800' : isAbsent ? 'border-red-800' : 'border-gray-700'
+              <div className={`relative w-12 h-12 rounded-full flex-shrink-0 overflow-hidden border transition-all duration-300 ${
+                  isPresent ? 'border-green-500 scale-105' : isAbsent ? 'border-red-500 scale-105' : 'border-gray-700 group-hover:border-gray-500'
               }`}>
                    {student.photo ? (
                        <img src={student.photo} alt="" className="w-full h-full object-cover" />
@@ -302,30 +302,30 @@ export const AttendanceTaker: React.FC<AttendanceTakerProps> = ({
                    
                    {/* Overlay for Present */}
                    <div className={`
-                       absolute inset-0 flex items-center justify-center transition-opacity duration-200
+                       absolute inset-0 flex items-center justify-center transition-all duration-300
                        ${isPresent ? 'opacity-100 bg-green-900/60 backdrop-blur-[1px]' : 'opacity-0'}
                    `}>
-                       <Check className="w-6 h-6 text-white" />
+                       <Check className={`w-6 h-6 text-white ${isPresent ? 'animate-zoom-in' : ''}`} />
                    </div>
 
                    {/* Overlay for Absent */}
                    <div className={`
-                       absolute inset-0 flex items-center justify-center transition-opacity duration-200
+                       absolute inset-0 flex items-center justify-center transition-all duration-300
                        ${isAbsent ? 'opacity-100 bg-red-900/60 backdrop-blur-[1px]' : 'opacity-0'}
                    `}>
-                       <X className="w-6 h-6 text-white" />
+                       <X className={`w-6 h-6 text-white ${isAbsent ? 'animate-zoom-in' : ''}`} />
                    </div>
               </div>
               
-              <div className="flex-1 min-w-0">
-                <p className={`font-semibold truncate transition-colors ${
-                    isPresent ? 'text-white' : isAbsent ? 'text-gray-400' : 'text-gray-300'
+              <div className="flex-1 min-w-0 z-10">
+                <p className={`font-semibold truncate transition-colors duration-200 ${
+                    isPresent ? 'text-white' : isAbsent ? 'text-gray-400' : 'text-gray-300 group-hover:text-white'
                 }`}>
                   {student.name}
                 </p>
                 <div className="flex items-center gap-2 mt-0.5">
                     {student.className && (
-                        <span className="text-xs text-gray-500 font-medium uppercase tracking-wide bg-gray-900 px-1.5 py-0.5 rounded border border-gray-700/50">
+                        <span className="text-xs text-gray-500 font-medium uppercase tracking-wide bg-gray-900 px-1.5 py-0.5 rounded border border-gray-700/50 group-hover:border-gray-600 transition-colors">
                             {student.className}
                         </span>
                     )}
@@ -338,15 +338,15 @@ export const AttendanceTaker: React.FC<AttendanceTakerProps> = ({
               </div>
               
               <div className={`
-                w-6 h-6 rounded-full flex items-center justify-center transition-all duration-200 border
+                w-6 h-6 rounded-full flex items-center justify-center transition-all duration-300 border
                 ${isPresent 
-                    ? 'bg-green-600 border-green-600 text-white' 
+                    ? 'bg-green-600 border-green-600 text-white scale-110' 
                     : isAbsent
-                    ? 'bg-red-600 border-red-600 text-white'
-                    : 'bg-gray-900 border-gray-700 text-gray-500 group-hover:border-gray-600'}
+                    ? 'bg-red-600 border-red-600 text-white scale-110'
+                    : 'bg-gray-900 border-gray-700 text-gray-500 group-hover:border-gray-500 group-hover:text-gray-300'}
               `}>
-                {isPresent && <Check className="w-3.5 h-3.5" />}
-                {isAbsent && <X className="w-3.5 h-3.5" />}
+                {isPresent && <Check className="w-3.5 h-3.5 animate-zoom-in" />}
+                {isAbsent && <X className="w-3.5 h-3.5 animate-zoom-in" />}
               </div>
             </div>
           );
@@ -364,7 +364,7 @@ export const AttendanceTaker: React.FC<AttendanceTakerProps> = ({
                 onClick={e => e.stopPropagation()}
             >
                 <div className="flex items-center gap-4 border-b border-gray-700 pb-4">
-                    <div className="p-3 bg-primary-900/20 rounded-full flex-shrink-0">
+                    <div className="p-3 bg-primary-900/20 rounded-full flex-shrink-0 animate-pulse-soft">
                         <Save className="w-6 h-6 text-primary-500" />
                     </div>
                     <div>
@@ -393,7 +393,7 @@ export const AttendanceTaker: React.FC<AttendanceTakerProps> = ({
 
                 <div className="flex gap-3 justify-end mt-2 pt-2 border-t border-gray-700">
                     <Button variant="ghost" onClick={() => setShowConfirm(false)}>Cancel</Button>
-                    <Button onClick={executeSave}>Confirm & Save</Button>
+                    <Button onClick={executeSave} className="active:scale-95">Confirm & Save</Button>
                 </div>
             </div>
         </div>

@@ -115,12 +115,12 @@ export const Dashboard: React.FC<DashboardProps> = ({ sessions, students, onEdit
   };
 
   const StatCard = ({ label, value, icon: Icon, colorClass }: any) => (
-      <div className="bg-gray-800 p-6 rounded-2xl border border-gray-700 shadow-soft flex items-start justify-between group hover:border-gray-600 transition-all duration-300">
+      <div className="bg-gray-800 p-6 rounded-2xl border border-gray-700 shadow-soft flex items-start justify-between group hover:border-gray-500 hover:shadow-glow hover:-translate-y-1 transition-all duration-300 cursor-default">
           <div>
-              <p className="text-gray-500 text-xs font-bold uppercase tracking-wider mb-1">{label}</p>
-              <h3 className="text-3xl font-bold text-gray-100">{value}</h3>
+              <p className="text-gray-500 text-xs font-bold uppercase tracking-wider mb-1 transition-colors group-hover:text-gray-400">{label}</p>
+              <h3 className="text-3xl font-bold text-gray-100 group-hover:text-white transition-colors">{value}</h3>
           </div>
-          <div className={`p-3 rounded-xl ${colorClass} bg-opacity-20 group-hover:scale-110 transition-transform duration-300`}>
+          <div className={`p-3 rounded-xl ${colorClass} bg-opacity-20 group-hover:scale-110 group-hover:bg-opacity-30 transition-all duration-300`}>
               <Icon className={`w-6 h-6 ${colorClass.replace('bg-', 'text-')}`} />
           </div>
       </div>
@@ -138,7 +138,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ sessions, students, onEdit
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Chart */}
-          <div className="lg:col-span-2 bg-gray-800 p-8 rounded-2xl border border-gray-700 shadow-soft h-[450px] lg:h-auto flex flex-col">
+          <div className="lg:col-span-2 bg-gray-800 p-8 rounded-2xl border border-gray-700 shadow-soft h-[450px] lg:h-auto flex flex-col hover:border-gray-600 transition-colors duration-300">
             <div className="flex justify-between items-center mb-6 flex-wrap gap-4">
                 <div>
                     <h3 className="text-lg font-bold text-gray-100">Attendance Trends</h3>
@@ -146,7 +146,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ sessions, students, onEdit
                 </div>
                 <div className="flex items-center gap-3 flex-wrap">
                     {/* View Selector */}
-                    <div className="relative">
+                    <div className="relative group">
                         <select 
                             value={chartView}
                             onChange={(e) => setChartView(e.target.value as any)}
@@ -156,11 +156,11 @@ export const Dashboard: React.FC<DashboardProps> = ({ sessions, students, onEdit
                             <option value="absent">Absent Only</option>
                             <option value="both">Combined</option>
                         </select>
-                        <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 pointer-events-none" />
+                        <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 pointer-events-none group-hover:text-gray-300 transition-colors" />
                     </div>
 
                     {/* Month Selector */}
-                    <div className="relative">
+                    <div className="relative group">
                         <select 
                             value={selectedMonth}
                             onChange={(e) => setSelectedMonth(e.target.value)}
@@ -171,10 +171,10 @@ export const Dashboard: React.FC<DashboardProps> = ({ sessions, students, onEdit
                             <option key={month} value={month}>{formatMonthLabel(month)}</option>
                             ))}
                         </select>
-                        <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 pointer-events-none" />
+                        <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 pointer-events-none group-hover:text-gray-300 transition-colors" />
                     </div>
                     {sessions.length > 0 && (
-                        <button onClick={downloadChart} className="p-2 text-gray-500 hover:text-gray-100 transition-colors rounded-lg hover:bg-gray-700">
+                        <button onClick={downloadChart} className="p-2 text-gray-500 hover:text-white transition-all rounded-lg hover:bg-gray-700 active:scale-95">
                             <Download className="w-4 h-4" />
                         </button>
                     )}
@@ -200,7 +200,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ sessions, students, onEdit
                       dx={-10}
                     />
                     <Tooltip 
-                      cursor={{fill: '#27272a'}}
+                      cursor={{fill: '#27272a', opacity: 0.5}}
                       contentStyle={{ backgroundColor: '#18181b', border: '1px solid #3f3f46', borderRadius: '12px', boxShadow: '0 4px 20px rgba(0,0,0,0.5)' }}
                       itemStyle={{ fontWeight: 600 }}
                       labelStyle={{ color: '#a1a1aa' }}
@@ -213,6 +213,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ sessions, students, onEdit
                             name="Present"
                             fill="#10b981" 
                             radius={[4, 4, 0, 0]}
+                            animationDuration={1500}
                         />
                     )}
                     {(chartView === 'absent' || chartView === 'both') && (
@@ -221,6 +222,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ sessions, students, onEdit
                             name="Absent"
                             fill="#ef4444" 
                             radius={[4, 4, 0, 0]}
+                            animationDuration={1500}
                         />
                     )}
                   </BarChart>
@@ -235,13 +237,13 @@ export const Dashboard: React.FC<DashboardProps> = ({ sessions, students, onEdit
 
           <div className="space-y-8 flex flex-col">
              {/* Birthday Card */}
-             <div className="bg-gray-800 rounded-2xl border border-gray-700 shadow-soft p-6 flex flex-col">
+             <div className="bg-gray-800 rounded-2xl border border-gray-700 shadow-soft p-6 flex flex-col hover:border-gray-600 transition-all duration-300">
                 <div className="flex items-center justify-between mb-4">
                      <h3 className="text-lg font-bold text-gray-100 flex items-center gap-2">
-                        <Cake className="w-5 h-5 text-primary-500" />
+                        <Cake className="w-5 h-5 text-primary-500 animate-pulse-slow" />
                         Birthdays
                     </h3>
-                    <div className="relative">
+                    <div className="relative group">
                         <select
                             value={selectedBirthdayMonth}
                             onChange={(e) => setSelectedBirthdayMonth(parseInt(e.target.value))}
@@ -251,18 +253,21 @@ export const Dashboard: React.FC<DashboardProps> = ({ sessions, students, onEdit
                                 <option key={i} value={i}>{m}</option>
                             ))}
                         </select>
-                        <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-3 h-3 text-gray-500 pointer-events-none" />
+                        <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-3 h-3 text-gray-500 pointer-events-none group-hover:text-gray-300 transition-colors" />
                     </div>
                 </div>
 
                 {birthdays.length > 0 ? (
                     <div className="overflow-y-auto max-h-[200px] custom-scrollbar pr-2">
                         <ul className="space-y-3">
-                            {birthdays.map(s => (
-                                <li key={s.id} className="flex items-center gap-3 bg-gray-900/50 p-3 rounded-xl border border-gray-700/50">
+                            {birthdays.map((s, idx) => (
+                                <li key={s.id} 
+                                    className="flex items-center gap-3 bg-gray-900/50 p-3 rounded-xl border border-gray-700/50 hover:border-primary-500/30 hover:bg-gray-800 transition-all duration-200"
+                                    style={{ animationDelay: `${idx * 100}ms` }}
+                                >
                                     <div className="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center flex-shrink-0 overflow-hidden border border-gray-700">
                                          {s.photo ? (
-                                            <img src={s.photo} className="w-full h-full object-cover" alt="" />
+                                            <img src={s.photo} className="w-full h-full object-cover transition-transform duration-500 hover:scale-110" alt="" />
                                          ) : (
                                             <User className="w-5 h-5 text-gray-500" />
                                          )}
@@ -271,7 +276,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ sessions, students, onEdit
                                         <p className="text-gray-200 font-medium text-sm truncate">{s.name}</p>
                                         <p className="text-xs text-gray-500">Turning {s.turningAge}</p>
                                     </div>
-                                    <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-gray-800 border border-gray-700 flex-shrink-0">
+                                    <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-gray-800 border border-gray-700 flex-shrink-0 shadow-inner-light">
                                          <span className="text-primary-400 font-bold text-sm">{s.day}</span>
                                     </div>
                                 </li>
@@ -280,41 +285,44 @@ export const Dashboard: React.FC<DashboardProps> = ({ sessions, students, onEdit
                     </div>
                 ) : (
                     <div className="flex flex-col items-center justify-center py-8 text-gray-500 text-sm border-2 border-dashed border-gray-700/50 rounded-xl">
-                        <Cake className="w-8 h-8 text-gray-700 mb-2" />
+                        <Cake className="w-8 h-8 text-gray-700 mb-2 opacity-50" />
                         No birthdays in {months[selectedBirthdayMonth]}.
                     </div>
                 )}
              </div>
 
              {/* History List */}
-             <div className="bg-gray-800 rounded-2xl border border-gray-700 shadow-soft overflow-hidden flex flex-col flex-1 h-[400px]">
+             <div className="bg-gray-800 rounded-2xl border border-gray-700 shadow-soft overflow-hidden flex flex-col flex-1 h-[400px] hover:border-gray-600 transition-colors duration-300">
                 <div className="p-6 border-b border-gray-700 flex justify-between items-center bg-gray-800">
                   <h3 className="text-lg font-bold text-gray-100">Recent Sessions</h3>
-                  <Button size="sm" variant="ghost" onClick={() => exportToCSV(sessions, students)} className="text-gray-400">
+                  <Button size="sm" variant="ghost" onClick={() => exportToCSV(sessions, students)} className="text-gray-400 hover:text-white">
                     <FileDown className="w-4 h-4" />
                   </Button>
                 </div>
                 <div className="flex-1 overflow-y-auto custom-scrollbar">
                   <ul className="divide-y divide-gray-700">
-                    {sessions.slice().reverse().map(session => {
+                    {sessions.slice().reverse().map((session, idx) => {
                       const presentCount = session.records.filter(r => r.status === 'present').length;
                       const dateObj = new Date(session.date);
                       return (
-                        <li key={session.id} className="p-5 hover:bg-gray-700/30 transition-colors group cursor-default">
+                        <li key={session.id} 
+                            className="p-5 hover:bg-gray-700/30 transition-all duration-200 group cursor-default hover:pl-6"
+                            style={{ animationDelay: `${idx * 50}ms` }}
+                        >
                           <div className="flex justify-between items-start mb-2">
                             <div className="flex items-center gap-3">
-                              <div className="w-10 h-10 rounded-xl bg-gray-900 flex flex-col items-center justify-center border border-gray-700">
-                                  <span className="text-xs font-bold text-gray-500 uppercase">{dateObj.toLocaleDateString('en-US', {month: 'short'})}</span>
+                              <div className="w-10 h-10 rounded-xl bg-gray-900 flex flex-col items-center justify-center border border-gray-700 group-hover:border-primary-500/30 transition-colors">
+                                  <span className="text-xs font-bold text-gray-500 uppercase group-hover:text-primary-400 transition-colors">{dateObj.toLocaleDateString('en-US', {month: 'short'})}</span>
                                   <span className="text-sm font-bold text-gray-200">{dateObj.getDate()}</span>
                               </div>
                               <div>
-                                  <p className="font-semibold text-gray-200 text-sm">{session.topic || 'Regular Session'}</p>
+                                  <p className="font-semibold text-gray-200 text-sm group-hover:text-white transition-colors">{session.topic || 'Regular Session'}</p>
                                   <p className="text-xs text-gray-500">{dateObj.toLocaleDateString('en-US', {weekday: 'long'})}</p>
                               </div>
                             </div>
                             <button 
                                 onClick={() => onEditSession(session)}
-                                className="p-1.5 text-gray-500 hover:text-primary-400 hover:bg-primary-900/20 rounded-lg transition-colors opacity-0 group-hover:opacity-100"
+                                className="p-1.5 text-gray-500 hover:text-primary-400 hover:bg-primary-900/20 rounded-lg transition-all opacity-0 group-hover:opacity-100 transform translate-x-2 group-hover:translate-x-0"
                               >
                                 <Edit className="w-4 h-4" />
                             </button>
@@ -322,7 +330,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ sessions, students, onEdit
                           <div className="pl-[52px]">
                               <div className="w-full bg-gray-900 rounded-full h-1.5 mb-1.5 overflow-hidden">
                                   <div 
-                                    className="bg-primary-500 h-1.5 rounded-full" 
+                                    className="bg-primary-500 h-1.5 rounded-full transition-all duration-1000 ease-out" 
                                     style={{ width: `${(presentCount / Math.max(students.length, 1)) * 100}%` }}
                                   ></div>
                               </div>
