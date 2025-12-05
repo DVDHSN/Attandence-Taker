@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -7,7 +8,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Inter:wght@400;500;700;900&display=swap" rel="stylesheet">
     <script>
       tailwind.config = {
         darkMode: 'class',
@@ -15,6 +16,10 @@
           extend: {
             fontFamily: {
               sans: ['Inter', 'sans-serif'],
+              mono: ['"Space Mono"', 'monospace'],
+            },
+            transitionTimingFunction: {
+              'smooth': 'cubic-bezier(0.16, 1, 0.3, 1)',
             },
             colors: {
               gray: {
@@ -25,9 +30,9 @@
                 400: '#a1a1aa',
                 500: '#71717a',
                 600: '#52525b',
-                700: '#3f3f46', // Border
-                800: '#27272a', // Cards / Secondary BG
-                900: '#18181b', // Main BG
+                700: '#3f3f46',
+                800: '#27272a',
+                900: '#18181b',
                 950: '#09090b',
               },
               primary: {
@@ -35,8 +40,8 @@
                 100: '#fee2e2',
                 200: '#fecaca',
                 300: '#fca5a5',
-                400: '#f87171', // Soft Red Text
-                500: '#ef4444', // Soft Red UI
+                400: '#f87171',
+                500: '#ef4444',
                 600: '#dc2626',
                 700: '#b91c1c',
                 800: '#991b1b',
@@ -44,16 +49,22 @@
               }
             },
             boxShadow: {
-              'soft': '0 4px 20px -2px rgba(0, 0, 0, 0.5)',
-              'glow': '0 0 20px rgba(239, 68, 68, 0.25)',
-              'inner-light': 'inset 0 2px 4px 0 rgba(255, 255, 255, 0.05)',
+              'brutal': '4px 4px 0px 0px rgba(0,0,0,1)',
+              'brutal-lg': '8px 8px 0px 0px rgba(239, 68, 68, 1)',
+              'brutal-hover': '2px 2px 0px 0px rgba(0,0,0,1)',
+              'brutal-active': '0px 0px 0px 0px rgba(0,0,0,1)',
             },
             animation: {
-              'fade-in': 'fadeIn 0.4s ease-out forwards',
-              'fade-in-up': 'fadeInUp 0.5s ease-out forwards',
-              'zoom-in': 'zoomIn 0.2s ease-out forwards',
-              'slide-in': 'slideIn 0.3s ease-out forwards',
+              'fade-in': 'fadeIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards',
+              'fade-in-up': 'fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards',
+              'zoom-in': 'zoomIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards',
+              'slide-in': 'slideIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards',
+              'slide-in-right': 'slideInRight 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards',
               'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+              'wiggle': 'wiggle 0.3s ease-in-out',
+              'pop': 'pop 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
+              'shake': 'shake 0.5s cubic-bezier(.36,.07,.19,.97) both',
+              'spin-slow': 'spin 3s linear infinite',
             },
             keyframes: {
               fadeIn: {
@@ -61,7 +72,7 @@
                 '100%': { opacity: '1' },
               },
               fadeInUp: {
-                '0%': { opacity: '0', transform: 'translateY(10px)' },
+                '0%': { opacity: '0', transform: 'translateY(15px)' },
                 '100%': { opacity: '1', transform: 'translateY(0)' },
               },
               zoomIn: {
@@ -69,8 +80,27 @@
                 '100%': { opacity: '1', transform: 'scale(1)' },
               },
               slideIn: {
-                '0%': { opacity: '0', transform: 'translateX(-10px)' },
+                '0%': { opacity: '0', transform: 'translateX(-15px)' },
                 '100%': { opacity: '1', transform: 'translateX(0)' },
+              },
+              slideInRight: {
+                '0%': { opacity: '0', transform: 'translateX(15px)' },
+                '100%': { opacity: '1', transform: 'translateX(0)' },
+              },
+              wiggle: {
+                '0%, 100%': { transform: 'rotate(-2deg)' },
+                '50%': { transform: 'rotate(2deg)' },
+              },
+              pop: {
+                '0%': { transform: 'scale(1)' },
+                '50%': { transform: 'scale(0.95)' },
+                '100%': { transform: 'scale(1)' },
+              },
+              shake: {
+                '10%, 90%': { transform: 'translate3d(-1px, 0, 0)' },
+                '20%, 80%': { transform: 'translate3d(2px, 0, 0)' },
+                '30%, 50%, 70%': { transform: 'translate3d(-4px, 0, 0)' },
+                '40%, 60%': { transform: 'translate3d(4px, 0, 0)' }
               }
             }
           }
@@ -85,34 +115,34 @@
         -moz-osx-font-smoothing: grayscale;
       }
       
-      /* Custom scrollbar for dark mode */
+      /* Brutalist Scrollbar */
       ::-webkit-scrollbar {
-        width: 8px;
-        height: 8px;
+        width: 12px;
+        background: #18181b;
+        border-left: 2px solid #3f3f46;
       }
       ::-webkit-scrollbar-track {
         background: #18181b; 
       }
       ::-webkit-scrollbar-thumb {
-        background: #3f3f46; 
-        border-radius: 4px;
+        background: #ef4444; 
+        border: 2px solid #18181b;
       }
       ::-webkit-scrollbar-thumb:hover {
-        background: #52525b; 
+        background: #dc2626; 
       }
 
       .custom-scrollbar::-webkit-scrollbar {
-        width: 6px;
+        width: 8px;
       }
       
       input[type="date"]::-webkit-calendar-picker-indicator {
         filter: invert(1);
         cursor: pointer;
-        opacity: 0.6;
-        transition: opacity 0.2s;
+        opacity: 1;
+        transition: transform 0.2s;
       }
       input[type="date"]::-webkit-calendar-picker-indicator:hover {
-        opacity: 1;
         transform: scale(1.1);
       }
     </style>

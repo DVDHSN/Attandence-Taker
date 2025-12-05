@@ -1,5 +1,6 @@
+
 import React, { useState, useEffect } from 'react';
-import { LayoutDashboard, Users, ClipboardCheck, Menu, X, BookOpenCheck, Settings as SettingsIcon } from 'lucide-react';
+import { LayoutDashboard, Users, ClipboardCheck, Menu, X, BookOpenCheck, Settings as SettingsIcon, HelpCircle, ChevronRight } from 'lucide-react';
 import { Student, ClassSession, ClassConfig } from './types';
 import { 
   saveStudents, getStudents, 
@@ -11,6 +12,7 @@ import { StudentManager } from './components/StudentManager';
 import { AttendanceTaker } from './components/AttendanceTaker';
 import { Dashboard } from './components/Dashboard';
 import { Settings } from './components/Settings';
+import { TutorialOverlay } from './components/TutorialOverlay';
 
 type View = 'dashboard' | 'attendance' | 'students' | 'settings';
 
@@ -22,6 +24,7 @@ const App: React.FC = () => {
   const [classConfigs, setClassConfigs] = useState<Record<string, ClassConfig>>({});
   const [editingSession, setEditingSession] = useState<ClassSession | undefined>(undefined);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isTutorialOpen, setIsTutorialOpen] = useState(false);
 
   useEffect(() => {
     // Initial Load
@@ -129,7 +132,6 @@ const App: React.FC = () => {
         const confirmMsg = `Found in backup:\n- ${backup.students.length} Students\n- ${backup.sessions.length} Sessions\n\nMerge this data? Existing records with matching IDs will be updated. New records will be added.`;
         
         if (window.confirm(confirmMsg)) {
-          // Merge Logic
           const studentMap = new Map<string, Student>();
           students.forEach(s => studentMap.set(s.id, s));
           (backup.students as Student[]).forEach((s) => studentMap.set(s.id, s));
@@ -138,10 +140,7 @@ const App: React.FC = () => {
           sessions.forEach(s => sessionMap.set(s.id, s));
           (backup.sessions as ClassSession[]).forEach((s) => sessionMap.set(s.id, s));
           
-          // Classes: Union of existing and imported
           const newClasses = Array.from(new Set([...classes, ...(backup.classes || [])])).sort();
-          
-          // Configs: Merge
           const newConfigs = { ...classConfigs, ...(backup.classConfigs || {}) };
 
           const mergedStudents = Array.from(studentMap.values());
@@ -167,7 +166,6 @@ const App: React.FC = () => {
        if (window.confirm("Really delete everything?")) {
           handleUpdateStudents([]);
           handleUpdateSessions([]);
-          // We can opt to keep default classes or wipe them. Let's wipe to factory defaults.
           handleUpdateClasses(['Kindy', 'Junior', 'Intermediate', 'Senior']);
           handleUpdateClassConfigs({
             'Kindy': { minAge: 4, maxAge: 6 },
@@ -188,85 +186,93 @@ const App: React.FC = () => {
         if (view === 'attendance') setEditingSession(undefined);
         setIsSidebarOpen(false);
       }}
-      className={`w-full flex items-center gap-3 px-5 py-3.5 rounded-2xl transition-all duration-300 group ${
+      className={`w-full flex items-center gap-3 px-5 py-4 transition-all duration-300 ease-out group border-b-2 border-transparent hover:border-primary-500 rounded-none relative overflow-visible ${
         currentView === view 
-          ? 'bg-primary-500/10 text-primary-400 shadow-none font-semibold border border-primary-500/20 translate-x-2' 
-          : 'text-gray-400 hover:bg-gray-800 hover:text-gray-200 font-medium hover:translate-x-2'
+          ? 'bg-zinc-800 text-primary-400 font-bold border-l-4 border-l-primary-500 border-b-zinc-800 pl-8 shadow-[-4px_4px_0px_0px_rgba(0,0,0,1)] -translate-y-1 z-10' 
+          : 'text-gray-400 hover:bg-zinc-800 hover:text-white font-medium hover:pl-8 hover:-translate-y-1 hover:shadow-[-4px_4px_0px_0px_rgba(0,0,0,1)] hover:z-10'
       }`}
     >
-      <Icon className={`w-5 h-5 transition-colors ${currentView === view ? 'text-primary-400' : 'text-gray-500 group-hover:text-gray-300'}`} />
-      <span>{label}</span>
+      <Icon className={`w-5 h-5 transition-transform duration-300 ${currentView === view ? 'text-primary-500 scale-110' : 'text-zinc-500 group-hover:text-zinc-300 group-hover:scale-110'}`} />
+      <span className="uppercase tracking-widest text-sm relative z-10">{label}</span>
+      {currentView === view && <ChevronRight className="w-4 h-4 ml-auto text-primary-500 animate-slide-in-right" />}
     </button>
   );
 
   return (
-    <div className="min-h-screen bg-gray-900 text-gray-100 flex flex-col md:flex-row font-sans selection:bg-primary-500/30 selection:text-primary-200">
+    <div className="min-h-screen bg-zinc-900 text-gray-100 flex flex-col md:flex-row font-sans overflow-hidden">
       
-      {/* Mobile Header */}
-      <div className="md:hidden flex items-center justify-between p-4 bg-gray-900/80 backdrop-blur-md border-b border-gray-800 sticky top-0 z-30">
-        <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-gradient-to-br from-primary-500 to-primary-600 rounded-lg flex items-center justify-center text-white shadow-glow animate-pulse-slow">
+      {/* Mobile Header - Brutalist */}
+      <div className="md:hidden flex items-center justify-between p-4 bg-zinc-900 border-b-4 border-zinc-800 sticky top-0 z-30 shadow-lg animate-slide-in">
+        <div className="flex items-center gap-3">
+            <div className="w-8 h-8 bg-primary-600 border-2 border-white flex items-center justify-center text-white shadow-brutal-hover transition-transform active:scale-95">
                 <BookOpenCheck className="w-5 h-5" />
             </div>
-            <h1 className="text-lg font-bold text-gray-100 tracking-tight">
-            Attendance
+            <h1 className="text-xl font-black text-white tracking-tighter uppercase">
+              ATTENDANCE<span className="text-primary-500">.MGR</span>
             </h1>
         </div>
-        <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="p-2 text-gray-400 hover:bg-gray-800 rounded-lg transition-colors active:scale-95">
-          {isSidebarOpen ? <X /> : <Menu />}
+        <button 
+          onClick={() => setIsSidebarOpen(!isSidebarOpen)} 
+          className="p-2 border-2 border-white text-white active:bg-white active:text-black transition-all duration-150 active:scale-95"
+        >
+            {isSidebarOpen ? <X /> : <Menu />}
         </button>
       </div>
 
-      {/* Sidebar Navigation */}
+      {/* Sidebar Navigation - Brutalist */}
       <aside className={`
-        fixed inset-y-0 left-0 z-20 w-72 bg-gray-900/95 border-r border-gray-800 transform transition-transform duration-300 ease-in-out backdrop-blur-xl md:backdrop-blur-none md:bg-gray-900
-        md:relative md:translate-x-0
-        ${isSidebarOpen ? 'translate-x-0 shadow-2xl shadow-black' : '-translate-x-full'}
+        fixed inset-y-0 left-0 z-20 w-80 bg-zinc-900 border-r-4 border-zinc-800 transform transition-transform duration-500 ease-smooth
+        md:relative md:translate-x-0 flex flex-col shadow-2xl md:shadow-none
+        ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}
       `}>
-        <div className="p-8 pb-4">
-          <div className="flex items-center gap-3 mb-8">
-            <div className="w-10 h-10 bg-gradient-to-br from-primary-500 to-primary-600 rounded-xl shadow-glow flex items-center justify-center text-white animate-pulse-slow">
-                <BookOpenCheck className="w-6 h-6" />
+        <div className="p-8 pb-8 border-b-4 border-zinc-800 bg-zinc-900">
+          <div className="flex items-center gap-4 group cursor-default">
+            <div className="w-12 h-12 bg-primary-600 border-2 border-white shadow-brutal flex items-center justify-center text-white transition-all duration-300 group-hover:shadow-brutal-lg group-hover:-translate-y-1 group-hover:rotate-6">
+                <BookOpenCheck className="w-7 h-7" />
             </div>
             <div>
-                <h1 className="text-xl font-bold text-gray-100 tracking-tight leading-none">
-                    Attendance
+                <h1 className="text-2xl font-black text-white tracking-tighter leading-none uppercase">
+                    ATTENDANCE<br/><span className="text-primary-500">.MGR</span>
                 </h1>
-                <p className="text-xs text-gray-500 font-medium mt-1 tracking-wide uppercase">Class Manager</p>
             </div>
           </div>
         </div>
 
-        <nav className="px-6 space-y-2">
+        <nav className="flex-1 overflow-y-auto py-4 space-y-1 overflow-x-hidden p-2 custom-scrollbar">
           <NavItem view="dashboard" icon={LayoutDashboard} label="Dashboard" />
           <NavItem view="attendance" icon={ClipboardCheck} label="Attendance" />
           <NavItem view="students" icon={Users} label="Students" />
-          <div className="pt-4 mt-4 border-t border-gray-800">
-            <NavItem view="settings" icon={SettingsIcon} label="Settings" />
-          </div>
+          <div className="my-4 border-t-4 border-zinc-800 mx-4"></div>
+          <NavItem view="settings" icon={SettingsIcon} label="Settings" />
         </nav>
+
+        <div className="p-4 border-t-4 border-zinc-800 bg-zinc-950/50">
+            <p className="text-xs font-mono text-zinc-600 text-center hover:text-primary-500 transition-colors cursor-default animate-pulse-slow">V1.0.1 // BRUTAL_EDITION</p>
+        </div>
       </aside>
 
       {/* Main Content Area */}
-      <main className="flex-1 overflow-y-auto bg-gray-900 custom-scrollbar">
-        <div className="max-w-7xl mx-auto p-4 md:p-8 lg:p-12">
+      <main className="flex-1 overflow-y-auto bg-zinc-900 relative custom-scrollbar">
+        <div className="max-w-8xl mx-auto p-4 md:p-12 pb-24">
           
-          <header className="mb-10 max-w-4xl animate-fade-in-up">
-            <h2 className="text-4xl font-bold text-white mb-3 tracking-tight">
-              {currentView === 'dashboard' && 'Overview'}
-              {currentView === 'attendance' && (editingSession ? 'Edit Session' : 'Take Attendance')}
-              {currentView === 'students' && 'Student Roster'}
-              {currentView === 'settings' && 'Data Management'}
+          <header className="mb-12 border-b-4 border-zinc-800 pb-8 animate-fade-in">
+            <h2 key={currentView} className="text-5xl font-black text-white mb-4 tracking-tighter uppercase transition-all duration-300 hover:text-primary-500 cursor-default animate-slide-in-right">
+              {currentView === 'dashboard' && 'Status Report'}
+              {currentView === 'attendance' && (editingSession ? 'Edit Record' : 'New Session')}
+              {currentView === 'students' && 'Roster'}
+              {currentView === 'settings' && 'System Config'}
             </h2>
-            <p className="text-lg text-gray-400 font-light">
-              {currentView === 'dashboard' && 'Welcome back. Here is your class activity summary.'}
-              {currentView === 'attendance' && (editingSession ? 'Updating records for a past session.' : 'Select students to mark them as present.')}
-              {currentView === 'students' && 'Manage your students, guardians, and class assignments.'}
-              {currentView === 'settings' && 'Backup, restore, or reset your application data.'}
-            </p>
+            <div className="inline-block bg-zinc-800 px-3 py-1 border-l-4 border-primary-500 transition-all duration-300 hover:pl-6 hover:bg-zinc-700 hover:border-white">
+                <p className="text-sm text-zinc-400 font-mono uppercase tracking-wide">
+                    {currentView === 'dashboard' && '// SYSTEM OVERVIEW'}
+                    {currentView === 'attendance' && (editingSession ? '// MODIFYING HISTORICAL DATA' : '// MARKING ACTIVE ATTENDANCE')}
+                    {currentView === 'students' && '// PERSONNEL MANAGEMENT'}
+                    {currentView === 'settings' && '// DATA OPERATIONS'}
+                </p>
+            </div>
           </header>
 
-          <div className="animate-fade-in-up">
+          <div className="animate-fade-in-up" key={currentView}>
             {currentView === 'dashboard' && (
               <Dashboard 
                 sessions={sessions} 
@@ -308,10 +314,26 @@ const App: React.FC = () => {
         </div>
       </main>
       
+      {/* Floating Tutorial Trigger - Bottom Right */}
+      <button 
+        onClick={() => setIsTutorialOpen(true)}
+        className="fixed bottom-6 right-6 z-50 bg-primary-600 text-white border-2 border-white w-14 h-14 flex items-center justify-center shadow-brutal hover:-translate-y-1 hover:-translate-x-1 hover:shadow-brutal-lg hover:bg-white hover:text-black hover:border-black transition-all duration-200 group active:scale-95 animate-pop"
+        title="Open Manual"
+      >
+        <HelpCircle className="w-8 h-8 group-hover:scale-110 transition-transform duration-200" />
+      </button>
+
+      {/* Tutorial Overlay */}
+      <TutorialOverlay 
+        isOpen={isTutorialOpen} 
+        onClose={() => setIsTutorialOpen(false)} 
+        view={currentView} 
+      />
+      
       {/* Overlay for mobile sidebar */}
       {isSidebarOpen && (
         <div 
-          className="fixed inset-0 bg-black/50 backdrop-blur-sm z-10 md:hidden transition-opacity animate-fade-in"
+          className="fixed inset-0 bg-black/80 z-10 md:hidden animate-fade-in backdrop-blur-sm"
           onClick={() => setIsSidebarOpen(false)}
         />
       )}

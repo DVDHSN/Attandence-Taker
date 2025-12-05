@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useMemo } from 'react';
 import { Student, ClassSession, AttendanceRecord } from '../types';
 import { Button } from './Button';
@@ -45,25 +46,17 @@ export const AttendanceTaker: React.FC<AttendanceTakerProps> = ({
       if (sortBy === 'name') {
         return a.name.localeCompare(b.name);
       }
-      
-      // Primary Sort: Class Name
-      const classA = a.className || 'zzzz'; // Put no class at end
+      const classA = a.className || 'zzzz';
       const classB = b.className || 'zzzz';
-      
       if (classA !== classB) {
         return classA.localeCompare(classB);
       }
-
-      // Secondary Sort
       if (sortBy === 'class_age') {
-        // Sort by birthday (Oldest first -> smaller date string)
         if (!a.birthday && !b.birthday) return a.name.localeCompare(b.name);
         if (!a.birthday) return 1;
         if (!b.birthday) return -1;
         return a.birthday.localeCompare(b.birthday);
       }
-      
-      // Default Secondary: Name
       return a.name.localeCompare(b.name);
     });
   }, [students, sortBy]);
@@ -71,12 +64,11 @@ export const AttendanceTaker: React.FC<AttendanceTakerProps> = ({
   const toggleStatus = (studentId: string) => {
     setRecords(prev => {
       const current = prev[studentId];
-      // Cycle: Unmarked -> Present -> Absent -> Unmarked
       if (current === 'present') {
         return { ...prev, [studentId]: 'absent' };
       } else if (current === 'absent') {
         const next = { ...prev };
-        delete next[studentId]; // Reset to undefined (Grey)
+        delete next[studentId];
         return next;
       } else {
         return { ...prev, [studentId]: 'present' };
@@ -105,21 +97,17 @@ export const AttendanceTaker: React.FC<AttendanceTakerProps> = ({
         setError("An attendance record for this date already exists.");
         return;
     }
-    
-    // Check for unmarked students
     const unmarkedCount = students.filter(s => !records[s.id]).length;
     if (unmarkedCount > 0) {
         setError(`You have ${unmarkedCount} unmarked student(s). All students must be marked Present or Absent.`);
         return;
     }
-
     setShowConfirm(true);
   };
 
   const executeSave = () => {
     const finalRecords: AttendanceRecord[] = students.map(s => ({
       studentId: s.id,
-      // Records should be populated now due to check in handleSaveClick
       status: records[s.id] || 'absent' 
     }));
 
@@ -131,7 +119,6 @@ export const AttendanceTaker: React.FC<AttendanceTakerProps> = ({
     };
 
     onSaveSession(session);
-    
     if (!existingSession) {
       setTopic('');
       setDate('');
@@ -140,7 +127,6 @@ export const AttendanceTaker: React.FC<AttendanceTakerProps> = ({
     setShowConfirm(false);
   };
 
-  // Helper to calculate age
   const getAge = (birthday: string) => {
     if (!birthday) return null;
     const birthDate = new Date(birthday);
@@ -155,123 +141,114 @@ export const AttendanceTaker: React.FC<AttendanceTakerProps> = ({
 
   if (students.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-24 text-gray-500 animate-fade-in-up">
-        <div className="w-16 h-16 bg-gray-800 rounded-full flex items-center justify-center mb-4 border border-gray-700 shadow-soft">
-           <User className="w-8 h-8 text-gray-600" />
+      <div className="flex flex-col items-center justify-center py-24 text-zinc-500 animate-fade-in-up border-2 border-dashed border-zinc-800">
+        <div className="w-16 h-16 bg-zinc-800 flex items-center justify-center mb-4 border-2 border-zinc-700 animate-bounce">
+           <User className="w-8 h-8 text-zinc-600" />
         </div>
-        <p className="text-lg font-medium text-gray-400">No students found.</p>
-        <p className="text-sm">Please add students in the roster first.</p>
+        <p className="text-lg font-bold font-mono uppercase">ROSTER_EMPTY</p>
       </div>
     );
   }
 
   const presentCount = Object.values(records).filter(s => s === 'present').length;
-  // Absent count includes explicit absent
   const absentCount = Object.values(records).filter(s => s === 'absent').length;
-  // Unmarked count
   const unmarkedCount = students.length - presentCount - absentCount;
 
   return (
-    <div className="space-y-8 animate-fade-in relative">
+    <div className="space-y-8 relative">
       {error && (
-        <div className="bg-red-900/20 border border-red-900/50 text-red-400 p-4 rounded-xl flex items-center gap-3 animate-slide-in">
-            <AlertCircle className="w-5 h-5 shrink-0" />
-            <p className="font-medium">{error}</p>
+        <div className="bg-red-600 text-white p-4 border-4 border-red-900 flex items-center gap-3 animate-wiggle shadow-brutal">
+            <AlertCircle className="w-6 h-6 shrink-0" />
+            <p className="font-bold uppercase tracking-wide">{error}</p>
         </div>
       )}
 
       {/* Session Info Card */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-gray-800 p-6 rounded-2xl shadow-soft border border-gray-700 hover:border-gray-600 transition-colors duration-300">
-        <div>
-          <label className="block text-sm font-semibold text-gray-400 mb-2">Class Date <span className="text-red-500">*</span></label>
-          <div className="relative group">
-            <Calendar className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 group-hover:text-primary-400 transition-colors" />
-            <input
-              type="date"
-              value={date}
-              onChange={(e) => {
-                  setDate(e.target.value);
-                  setError(null);
-              }}
-              className="w-full bg-gray-900 border border-gray-700 text-gray-100 rounded-xl pl-10 pr-4 py-3 focus:ring-2 focus:ring-primary-900 focus:border-primary-500 outline-none transition-all placeholder-gray-500 font-medium hover:bg-gray-800"
-              required
-            />
-          </div>
-        </div>
-        <div>
-          <label className="block text-sm font-semibold text-gray-400 mb-2">Lesson Topic <span className="text-gray-600 font-normal">(Optional)</span></label>
-          <div className="relative group">
-            <BookOpen className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 group-hover:text-primary-400 transition-colors" />
-            <input
-              type="text"
-              placeholder="e.g. Noah's Ark"
-              value={topic}
-              onChange={(e) => setTopic(e.target.value)}
-              className="w-full bg-gray-900 border border-gray-700 text-gray-100 rounded-xl pl-10 pr-4 py-3 focus:ring-2 focus:ring-primary-900 focus:border-primary-500 outline-none transition-all placeholder-gray-500 hover:bg-gray-800"
-            />
-          </div>
+      <div className="bg-zinc-800 p-8 border-2 border-zinc-700 shadow-brutal transition-all duration-300 hover:border-white hover:shadow-brutal-lg">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div>
+            <label className="block text-xs font-bold uppercase tracking-widest text-zinc-400 mb-2">Class Date *</label>
+            <div className="relative group">
+                <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500 transition-colors group-hover:text-primary-500 group-hover:scale-110" />
+                <input
+                type="date"
+                value={date}
+                onChange={(e) => {
+                    setDate(e.target.value);
+                    setError(null);
+                }}
+                className="w-full bg-zinc-900 border-2 border-zinc-700 text-white pl-12 pr-4 py-3 focus:border-primary-500 outline-none font-mono uppercase transition-colors duration-200"
+                required
+                />
+            </div>
+            </div>
+            <div>
+            <label className="block text-xs font-bold uppercase tracking-widest text-zinc-400 mb-2">Lesson Topic</label>
+            <div className="relative group">
+                <BookOpen className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500 transition-colors group-hover:text-primary-500 group-hover:scale-110" />
+                <input
+                type="text"
+                placeholder="e.g. Noah's Ark"
+                value={topic}
+                onChange={(e) => setTopic(e.target.value)}
+                className="w-full bg-zinc-900 border-2 border-zinc-700 text-white pl-12 pr-4 py-3 focus:border-primary-500 outline-none font-medium placeholder-zinc-600 uppercase transition-colors duration-200"
+                />
+            </div>
+            </div>
         </div>
       </div>
 
-      {/* Control Bar - Sticky on Desktop */}
-      <div className="md:sticky md:top-2 z-20 flex flex-col xl:flex-row justify-between items-center gap-4 bg-gray-900 p-4 rounded-xl border border-gray-800 shadow-soft transition-all duration-300">
+      {/* Control Bar */}
+      <div className="sticky top-4 z-20 flex flex-col xl:flex-row justify-between items-center gap-4 bg-zinc-900 p-4 border-2 border-zinc-700 shadow-brutal transition-all duration-300">
         
-        {/* Left Actions */}
         <div className="flex flex-col sm:flex-row items-center gap-4 w-full xl:w-auto">
           <div className="flex gap-2 w-full sm:w-auto">
-            <Button size="sm" variant="secondary" onClick={() => markAll('present')} className="flex-1 sm:flex-none">All Present</Button>
-            <Button size="sm" variant="secondary" onClick={() => markAll('absent')} className="flex-1 sm:flex-none">All Absent</Button>
+            <Button size="sm" variant="secondary" onClick={() => markAll('present')} className="flex-1">ALL PRES</Button>
+            <Button size="sm" variant="secondary" onClick={() => markAll('absent')} className="flex-1">ALL ABS</Button>
           </div>
           
-          <div className="h-px w-full sm:w-px sm:h-8 bg-gray-700 hidden sm:block"></div>
+          <div className="h-8 w-px bg-zinc-700 hidden sm:block"></div>
 
           <div className="flex items-center gap-3 w-full sm:w-auto">
-              <span className="text-sm text-gray-500 font-medium whitespace-nowrap">Sort by:</span>
+              <span className="text-xs font-bold uppercase text-zinc-500">Sort:</span>
               <div className="relative w-full sm:w-48 group">
                 <select
                   value={sortBy}
                   onChange={(e) => setSortBy(e.target.value as SortOption)}
-                  className="w-full appearance-none bg-gray-800 border border-gray-700 text-gray-300 text-sm rounded-lg pl-3 pr-8 py-2 focus:ring-2 focus:ring-primary-900 outline-none cursor-pointer hover:border-gray-600 transition-colors"
+                  className="w-full appearance-none bg-zinc-800 border-2 border-zinc-700 text-white text-xs font-mono uppercase pl-3 pr-8 py-2 focus:border-primary-500 outline-none cursor-pointer transition-colors group-hover:border-white"
                 >
                   <option value="name">Name (A-Z)</option>
-                  <option value="class_alpha">Class (Alphabetical)</option>
+                  <option value="class_alpha">Class (A-Z)</option>
                   <option value="class_age">Class (Age)</option>
                 </select>
-                <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 pointer-events-none group-hover:text-gray-300 transition-colors" />
+                <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500 pointer-events-none group-hover:translate-y-0 transition-transform" />
               </div>
           </div>
         </div>
 
-        {/* Right Stats & Save */}
-        <div className="flex flex-col-reverse sm:flex-row items-center gap-4 border-t xl:border-t-0 border-gray-800 pt-4 xl:pt-0 w-full xl:w-auto justify-end">
-          <div className="flex items-center gap-4 text-sm font-medium justify-between sm:justify-end w-full sm:w-auto">
-            <div className="flex items-center gap-1.5 transition-transform hover:scale-105">
-               <div className="w-2 h-2 rounded-full bg-green-500 shadow-glow shadow-green-500/50"></div>
-               <span className="text-gray-300">{presentCount} Present</span>
+        <div className="flex flex-col-reverse sm:flex-row items-center gap-6 w-full xl:w-auto justify-end">
+          <div className="flex items-center gap-6 text-sm font-bold uppercase font-mono w-full sm:w-auto justify-between sm:justify-end">
+            <div className="flex items-center gap-2 group">
+               <div className="w-3 h-3 bg-green-500 border border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] group-hover:scale-125 transition-transform"></div>
+               <span className="text-zinc-300 transition-all group-hover:text-white">{presentCount} PRES</span>
             </div>
-            <div className="flex items-center gap-1.5 transition-transform hover:scale-105">
-               <div className="w-2 h-2 rounded-full bg-red-500 shadow-glow shadow-red-500/50"></div>
-               <span className="text-gray-500">{absentCount} Absent</span>
+            <div className="flex items-center gap-2 group">
+               <div className="w-3 h-3 bg-red-500 border border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] group-hover:scale-125 transition-transform"></div>
+               <span className="text-zinc-500 transition-all group-hover:text-white">{absentCount} ABS</span>
             </div>
-            {unmarkedCount > 0 && (
-              <div className="flex items-center gap-1.5 transition-transform hover:scale-105">
-                  <div className="w-2 h-2 rounded-full bg-gray-600"></div>
-                  <span className="text-gray-500">{unmarkedCount} Unmarked</span>
-              </div>
-            )}
           </div>
 
-          <Button onClick={handleSaveClick} className="w-full sm:w-auto shadow-lg shadow-primary-500/20 active:scale-95">
+          <Button onClick={handleSaveClick} className="w-full sm:w-auto">
               <Save className="w-4 h-4 mr-2" />
-              Save
+              Save Record
           </Button>
         </div>
       </div>
 
-      {/* Student Grid */}
+      {/* Student Grid - Brutalist Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-        {sortedStudents.map(student => {
-          const status = records[student.id]; // 'present' | 'absent' | undefined
+        {sortedStudents.map((student, idx) => {
+          const status = records[student.id]; 
           const isPresent = status === 'present';
           const isAbsent = status === 'absent';
           const age = student.birthday ? getAge(student.birthday) : null;
@@ -281,119 +258,104 @@ export const AttendanceTaker: React.FC<AttendanceTakerProps> = ({
               key={student.id}
               onClick={() => toggleStatus(student.id)}
               className={`
-                cursor-pointer p-4 rounded-2xl border transition-all duration-200 flex items-center gap-4 select-none group relative overflow-hidden active:scale-95 hover:scale-[1.02]
+                cursor-pointer p-4 border-2 transition-all duration-200 ease-out flex items-center gap-4 select-none group relative overflow-hidden active:scale-[0.95]
                 ${isPresent 
-                  ? 'bg-gray-800 border-green-900/50 shadow-md shadow-green-900/10' 
+                  ? 'bg-green-900/20 border-green-500 shadow-[4px_4px_0px_0px_#10b981] translate-x-[-2px] translate-y-[-2px]' 
                   : isAbsent
-                  ? 'bg-gray-800 border-red-900/50 shadow-md shadow-red-900/10'
-                  : 'bg-gray-800 border-gray-700 hover:border-gray-500 hover:shadow-lg hover:shadow-black/20'}
+                  ? 'bg-red-900/20 border-red-500 shadow-[4px_4px_0px_0px_#ef4444] translate-x-[-2px] translate-y-[-2px]'
+                  : 'bg-zinc-800 border-zinc-700 hover:border-white hover:bg-zinc-700 hover:shadow-[4px_4px_0px_0px_#fff] hover:translate-x-[-2px] hover:translate-y-[-2px] hover:rotate-1'}
               `}
+              style={{ animationDelay: `${idx * 20}ms` }}
             >
-              <div className={`relative w-12 h-12 rounded-full flex-shrink-0 overflow-hidden border transition-all duration-300 ${
-                  isPresent ? 'border-green-500 scale-105' : isAbsent ? 'border-red-500 scale-105' : 'border-gray-700 group-hover:border-gray-500'
+              <div className={`relative w-14 h-14 flex-shrink-0 border-2 transition-colors duration-200 ${
+                  isPresent ? 'border-green-500' : isAbsent ? 'border-red-500' : 'border-zinc-600 group-hover:border-white'
               }`}>
                    {student.photo ? (
-                       <img src={student.photo} alt="" className="w-full h-full object-cover" />
+                       <img src={student.photo} alt="" className="w-full h-full object-cover grayscale transition-all duration-300" />
                    ) : (
-                       <div className="w-full h-full bg-gray-900 flex items-center justify-center text-gray-500">
+                       <div className="w-full h-full bg-zinc-900 flex items-center justify-center text-zinc-600">
                            <User className="w-6 h-6" />
                        </div>
                    )}
                    
-                   {/* Overlay for Present */}
-                   <div className={`
-                       absolute inset-0 flex items-center justify-center transition-all duration-300
-                       ${isPresent ? 'opacity-100 bg-green-900/60 backdrop-blur-[1px]' : 'opacity-0'}
-                   `}>
-                       <Check className={`w-6 h-6 text-white ${isPresent ? 'animate-zoom-in' : ''}`} />
+                   <div className={`absolute inset-0 flex items-center justify-center transition-all duration-300 ${isPresent ? 'opacity-100 bg-green-500/80 scale-100' : 'opacity-0 scale-0'}`}>
+                       <Check className="w-8 h-8 text-black animate-pop" />
                    </div>
 
-                   {/* Overlay for Absent */}
-                   <div className={`
-                       absolute inset-0 flex items-center justify-center transition-all duration-300
-                       ${isAbsent ? 'opacity-100 bg-red-900/60 backdrop-blur-[1px]' : 'opacity-0'}
-                   `}>
-                       <X className={`w-6 h-6 text-white ${isAbsent ? 'animate-zoom-in' : ''}`} />
+                   <div className={`absolute inset-0 flex items-center justify-center transition-all duration-300 ${isAbsent ? 'opacity-100 bg-red-500/80 scale-100' : 'opacity-0 scale-0'}`}>
+                       <X className="w-8 h-8 text-black animate-pop" />
                    </div>
               </div>
               
               <div className="flex-1 min-w-0 z-10">
-                <p className={`font-semibold truncate transition-colors duration-200 ${
-                    isPresent ? 'text-white' : isAbsent ? 'text-gray-400' : 'text-gray-300 group-hover:text-white'
+                <p className={`font-bold uppercase truncate transition-colors duration-200 ${
+                    isPresent ? 'text-green-500' : isAbsent ? 'text-red-500' : 'text-white group-hover:text-white'
                 }`}>
                   {student.name}
                 </p>
-                <div className="flex items-center gap-2 mt-0.5">
+                <div className="flex flex-col gap-1 mt-1">
                     {student.className && (
-                        <span className="text-xs text-gray-500 font-medium uppercase tracking-wide bg-gray-900 px-1.5 py-0.5 rounded border border-gray-700/50 group-hover:border-gray-600 transition-colors">
+                        <span className="text-[10px] font-mono uppercase bg-zinc-950 text-zinc-400 px-1 border border-zinc-800 w-fit transition-colors group-hover:border-zinc-500">
                             {student.className}
                         </span>
                     )}
                     {age !== null && sortBy === 'class_age' && (
-                        <span className="text-[10px] text-gray-500">
-                            {age} yrs
+                        <span className="text-[10px] text-zinc-500 font-mono">
+                            {age} YRS
                         </span>
                     )}
                 </div>
               </div>
               
               <div className={`
-                w-6 h-6 rounded-full flex items-center justify-center transition-all duration-300 border
+                w-6 h-6 border-2 flex items-center justify-center transition-all duration-300 transform
                 ${isPresent 
-                    ? 'bg-green-600 border-green-600 text-white scale-110' 
+                    ? 'bg-green-500 border-green-500 text-black rotate-0 scale-100' 
                     : isAbsent
-                    ? 'bg-red-600 border-red-600 text-white scale-110'
-                    : 'bg-gray-900 border-gray-700 text-gray-500 group-hover:border-gray-500 group-hover:text-gray-300'}
+                    ? 'bg-red-500 border-red-500 text-black rotate-45 scale-100'
+                    : 'bg-transparent border-zinc-600 text-zinc-600 group-hover:border-white group-hover:text-white scale-75 group-hover:scale-100'}
               `}>
-                {isPresent && <Check className="w-3.5 h-3.5 animate-zoom-in" />}
-                {isAbsent && <X className="w-3.5 h-3.5 animate-zoom-in" />}
               </div>
             </div>
           );
         })}
       </div>
 
-      {/* Confirmation Modal */}
+      {/* Confirmation Modal - Brutalist */}
       {showConfirm && (
         <div 
-            className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200"
+            className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/90 backdrop-blur-sm animate-fade-in"
             onClick={() => setShowConfirm(false)}
         >
             <div 
-                className="bg-gray-800 w-full max-w-sm rounded-2xl shadow-2xl border border-gray-700 p-6 flex flex-col gap-4 animate-in zoom-in-95 duration-200"
+                className="bg-zinc-900 w-full max-w-md border-4 border-primary-600 shadow-brutal-lg p-0 flex flex-col animate-zoom-in"
                 onClick={e => e.stopPropagation()}
             >
-                <div className="flex items-center gap-4 border-b border-gray-700 pb-4">
-                    <div className="p-3 bg-primary-900/20 rounded-full flex-shrink-0 animate-pulse-soft">
-                        <Save className="w-6 h-6 text-primary-500" />
-                    </div>
-                    <div>
-                        <h3 className="text-lg font-bold text-white">Confirm Save</h3>
-                        <p className="text-gray-400 text-xs">Please review session details.</p>
-                    </div>
+                <div className="bg-primary-600 p-4 border-b-4 border-primary-800">
+                    <h3 className="text-xl font-black text-white uppercase tracking-tighter animate-pulse-slow">Confirm Submission</h3>
                 </div>
                 
-                <div className="space-y-3 py-2">
-                    <div className="flex justify-between items-center text-sm">
-                        <span className="text-gray-500">Date</span>
-                        <span className="text-gray-200 font-medium">{new Date(date).toLocaleDateString(undefined, { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' })}</span>
+                <div className="p-6 space-y-4">
+                    <div className="flex justify-between items-center border-b-2 border-zinc-800 pb-2">
+                        <span className="text-zinc-500 font-mono text-sm uppercase">Date</span>
+                        <span className="text-white font-bold uppercase">{new Date(date).toLocaleDateString()}</span>
                     </div>
-                    <div className="flex justify-between items-center text-sm">
-                        <span className="text-gray-500">Topic</span>
-                        <span className="text-gray-200 font-medium truncate max-w-[180px]">{topic || 'No topic'}</span>
+                    <div className="flex justify-between items-center border-b-2 border-zinc-800 pb-2">
+                        <span className="text-zinc-500 font-mono text-sm uppercase">Topic</span>
+                        <span className="text-white font-bold uppercase truncate max-w-[200px]">{topic || 'N/A'}</span>
                     </div>
-                    <div className="flex justify-between items-center text-sm">
-                        <span className="text-gray-500">Attendance</span>
-                        <div className="flex gap-3">
-                            <span className="text-green-500 font-medium">{presentCount} Present</span>
-                            <span className="text-red-400 font-medium">{absentCount} Absent</span>
+                    <div className="flex justify-between items-center pt-2">
+                        <span className="text-zinc-500 font-mono text-sm uppercase">Stats</span>
+                        <div className="flex gap-4 font-mono font-bold text-sm">
+                            <span className="text-green-500">{presentCount} PRS</span>
+                            <span className="text-red-500">{absentCount} ABS</span>
                         </div>
                     </div>
                 </div>
 
-                <div className="flex gap-3 justify-end mt-2 pt-2 border-t border-gray-700">
-                    <Button variant="ghost" onClick={() => setShowConfirm(false)}>Cancel</Button>
-                    <Button onClick={executeSave} className="active:scale-95">Confirm & Save</Button>
+                <div className="p-6 pt-0 flex gap-4">
+                    <Button variant="ghost" onClick={() => setShowConfirm(false)} className="flex-1">Back</Button>
+                    <Button onClick={executeSave} className="flex-1 bg-primary-600 hover:bg-white hover:text-black">Confirm</Button>
                 </div>
             </div>
         </div>
