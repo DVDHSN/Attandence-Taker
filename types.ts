@@ -1,3 +1,4 @@
+
 export interface Student {
   id: string;
   name: string;
@@ -11,16 +12,19 @@ export interface Student {
 }
 
 export type AttendanceStatus = 'present' | 'absent';
+export type MemoryVerseStatus = 'fluent' | 'attempted' | 'failed';
 
 export interface AttendanceRecord {
   studentId: string;
   status: AttendanceStatus;
+  memoryVerseStatus?: MemoryVerseStatus;
 }
 
 export interface ClassSession {
   id: string;
   date: string; // ISO Date string YYYY-MM-DD
   topic?: string;
+  memoryVerse?: string;
   records: AttendanceRecord[];
 }
 
@@ -34,3 +38,5 @@ export interface ClassConfig {
   minAge: number;
   maxAge: number;
 }
+
+export type Density = 'spacious' | 'default' | 'compact';

@@ -5,7 +5,7 @@ import { X, ArrowRight, ChevronRight, Terminal, HelpCircle } from 'lucide-react'
 interface TutorialOverlayProps {
   isOpen: boolean;
   onClose: () => void;
-  view: 'dashboard' | 'attendance' | 'students' | 'settings';
+  view: 'dashboard' | 'attendance' | 'students' | 'settings' | 'analytics';
 }
 
 const tutorialContent = {
@@ -23,6 +23,23 @@ const tutorialContent = {
       {
         title: 'QUICK ACTIONS',
         text: 'Check upcoming Birthdays and review Recent Sessions history on the right panel.'
+      }
+    ]
+  },
+  analytics: {
+    title: 'INTELLIGENCE REPORT',
+    steps: [
+      {
+        title: 'FILTER BY CLASS',
+        text: 'Use the dropdown at the top to isolate data for specific classes. All charts will update automatically.'
+      },
+      {
+        title: 'DEEP DIVE',
+        text: 'Analyze "Verse Retention" trends to see how memory verse fluency is improving over time.'
+      },
+      {
+        title: 'LEADERBOARDS',
+        text: 'Identify top performers in Attendance and Memory Verses. Great for awarding prizes or recognition.'
       }
     ]
   },

@@ -1,8 +1,9 @@
 
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { Student, ClassSession, ClassConfig } from '../types';
+import { Student, ClassSession, ClassConfig, Density } from '../types';
 import { Button } from './Button';
-import { Trash2, UserPlus, Users, Search, FolderPlus, Edit2, Check, X, ChevronDown, ChevronUp, Phone, FileText, User, PieChart, GraduationCap, Cake, Camera, Upload, Sparkles, AlertTriangle, FileUp, Download, MapPin, Trophy, TrendingDown } from 'lucide-react';
+import { Trash2, UserPlus, Users, Search, FolderPlus, Edit2, Check, X, ChevronDown, ChevronUp, Phone, FileText, User, PieChart, GraduationCap, Cake, Camera, Upload, Sparkles, AlertTriangle, FileUp, Download, MapPin, Trophy, TrendingDown, Star, ScrollText, Calendar, Minus, AlertOctagon, CheckCircle2 } from 'lucide-react';
+import { exportStudentHistoryToCSV } from '../services/storageService';
 
 interface StudentManagerProps {
   students: Student[];
@@ -13,6 +14,7 @@ interface StudentManagerProps {
   onUpdateClassConfigs: (configs: Record<string, ClassConfig>) => void;
   sessions: ClassSession[];
   onUpdateSessions: (sessions: ClassSession[]) => void;
+  density: Density;
 }
 
 export const StudentManager: React.FC<StudentManagerProps> = ({ 
@@ -23,9 +25,9 @@ export const StudentManager: React.FC<StudentManagerProps> = ({
     classConfigs,
     onUpdateClassConfigs,
     sessions,
-    onUpdateSessions
+    onUpdateSessions,
+    density
 }) => {
-  // ... state declarations same as before ...
   const [newName, setNewName] = useState('');
   const [newGuardian, setNewGuardian] = useState('');
   const [newGuardianContact, setNewGuardianContact] = useState('');
@@ -69,6 +71,41 @@ export const StudentManager: React.FC<StudentManagerProps> = ({
     onConfirm: () => {},
   });
 
+  const s = useMemo(() => {
+    switch (density) {
+        case 'compact':
+            return {
+                gap: 'gap-4',
+                space: 'space-y-4',
+                p: 'p-4',
+                listP: 'py-2 px-4',
+                headerP: 'px-4 py-4',
+                gridGap: 'gap-4',
+                input: 'py-2 px-3 text-xs'
+            };
+        case 'spacious':
+            return {
+                gap: 'gap-8',
+                space: 'space-y-12',
+                p: 'p-10',
+                listP: 'py-6 px-8',
+                headerP: 'px-8 py-8',
+                gridGap: 'gap-8',
+                input: 'py-4 px-4 text-sm'
+            };
+        default:
+            return {
+                gap: 'gap-6',
+                space: 'space-y-8',
+                p: 'p-8',
+                listP: 'py-4 px-6',
+                headerP: 'px-8 py-6',
+                gridGap: 'gap-6',
+                input: 'py-3 px-3 text-sm'
+            };
+    }
+  }, [density]);
+
   const fileInputRef = useRef<HTMLInputElement>(null);
   const editFileInputRef = useRef<HTMLInputElement>(null);
 
@@ -83,6 +120,41 @@ export const StudentManager: React.FC<StudentManagerProps> = ({
     }
     return acc;
   }, {} as Record<string, number>);
+
+  // --- STATS CALCULATION FOR INSIGHTS ---
+  const studentStats = useMemo(() => {
+    return students.map(student => {
+      let present = 0;
+      let total = 0;
+      sessions.forEach(session => {
+        const record = session.records.find(r => r.studentId === student.id);
+        if (record) {
+          total++;
+          if (record.status === 'present') present++;
+        }
+      });
+      const percentage = total > 0 ? Math.round((present / total) * 100) : 0;
+      return { ...student, percentage, totalSessions: total };
+    });
+  }, [students, sessions]);
+
+  const topStudents = useMemo(() => {
+    return [...studentStats]
+      .filter(s => s.totalSessions > 0)
+      .sort((a, b) => {
+        if (b.percentage !== a.percentage) return b.percentage - a.percentage;
+        return a.name.localeCompare(b.name);
+      })
+      .slice(0, 3);
+  }, [studentStats]);
+
+  const atRiskStudents = useMemo(() => {
+    return studentStats
+      .filter(s => s.totalSessions > 0 && s.percentage < 30)
+      .sort((a, b) => a.percentage - b.percentage); // Lowest first
+  }, [studentStats]);
+
+  // --- END STATS ---
 
   const getAge = (birthday: string) => {
     if (!birthday) return null;
@@ -156,7 +228,7 @@ export const StudentManager: React.FC<StudentManagerProps> = ({
     }
   }, [newBirthday, classConfigs, autoClass]);
 
-  const handleImportFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImportFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
         const reader = new FileReader();
@@ -167,10 +239,24 @@ export const StudentManager: React.FC<StudentManagerProps> = ({
             }
         };
         reader.readAsText(file);
+        e.target.value = '';
     }
   };
 
-  // ... (keeping parsing logic same) ...
+  const downloadTemplate = () => {
+      const headers = "Name,Class,Guardian,Contact,Birthday (YYYY-MM-DD),Address";
+      const example = "John Doe,Junior,Jane Doe,555-0123,2015-05-20,123 Main St";
+      const content = `${headers}\n${example}`;
+      const blob = new Blob([content], { type: 'text/csv' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = 'student_import_template.csv';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+  };
+
   const parseImportDate = (dateStr?: string) => {
     if (!dateStr) return undefined;
     const clean = dateStr.trim();
@@ -186,16 +272,24 @@ export const StudentManager: React.FC<StudentManagerProps> = ({
   const parsedImportData = useMemo(() => {
     if (!importText.trim()) return [];
     return importText.split(/\r?\n/).filter(line => line.trim()).map((line, index) => {
-        if (index === 0 && line.toLowerCase().includes('name') && (line.toLowerCase().includes('class') || line.toLowerCase().includes('guardian'))) {
+        const lower = line.toLowerCase();
+        // Simple header detection
+        if (index === 0 && (lower.includes('name') && (lower.includes('class') || lower.includes('guardian') || lower.includes('birthday')))) {
             return null;
         }
+        
+        // Handle CSV splitting including quoted values
         const parts = line.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(p => p.trim().replace(/^"|"$/g, ''));
+        
         let student: Partial<Student> = {};
         if (parts.length > 1) {
             const [name, rawClass, guardian, contact, rawBirthday, address] = parts;
             if (!name) return null;
+            
             const birthday = parseImportDate(rawBirthday);
             let className = rawClass || undefined;
+            
+            // Auto-assign class based on age if birthday is provided and class is missing
             if (!className && birthday) {
               const age = getAge(birthday);
               if (age !== null) {
@@ -208,11 +302,21 @@ export const StudentManager: React.FC<StudentManagerProps> = ({
                   }
               }
             }
-            student = { name, className, guardian: guardian || undefined, guardianContact: contact || undefined, birthday, address: address || undefined };
+            
+            student = { 
+                name, 
+                className, 
+                guardian: guardian || undefined, 
+                guardianContact: contact || undefined, 
+                birthday, 
+                address: address || undefined 
+            };
         } else {
+            // Simple line with just a name
             if (!line.trim()) return null;
             student = { name: line.trim() };
         }
+        
         return { id: crypto.randomUUID(), ...student } as Student;
     }).filter((s): s is Student => s !== null);
   }, [importText, classConfigs]);
@@ -227,20 +331,6 @@ export const StudentManager: React.FC<StudentManagerProps> = ({
     onUpdateStudents([...students, ...parsedImportData]);
     setIsImportModalOpen(false);
     setImportText('');
-  };
-
-  const downloadTemplate = () => {
-      const headers = "Name,Class,Guardian,Guardian Contact,Birthday,Address,Notes";
-      const example = "John Doe,,Jane Doe,555-0123,2015-05-20,123 Main St,Allergies to nuts";
-      const content = `${headers}\n${example}`;
-      const blob = new Blob([content], { type: 'text/csv' });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = 'student_import_template.csv';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
   };
 
   const handleAddStudent = (e: React.FormEvent) => {
@@ -478,21 +568,6 @@ export const StudentManager: React.FC<StudentManagerProps> = ({
     });
   };
   
-  const getStudentStats = (studentId: string) => {
-    let present = 0;
-    let absent = 0;
-    sessions.forEach(session => {
-        const record = session.records.find(r => r.studentId === studentId);
-        if (record) {
-            if (record.status === 'present') present++;
-            else absent++;
-        }
-    });
-    const total = present + absent;
-    const percentage = total > 0 ? Math.round((present / total) * 100) : 0;
-    return { present, absent, total, percentage };
-  };
-
   const getClassStats = (className: string) => {
       const classStudents = students.filter(s => s.className === className);
       const studentIds = new Set(classStudents.map(s => s.id));
@@ -512,17 +587,58 @@ export const StudentManager: React.FC<StudentManagerProps> = ({
       return { present, absent, total, percentage, studentCount: classStudents.length, students: classStudents, config };
   };
 
-  const InputStyle = "w-full bg-zinc-900 border-2 border-zinc-700 text-white px-3 py-3 focus:border-primary-500 focus:outline-none transition-all duration-200 placeholder-zinc-600 font-mono text-sm focus:scale-[1.01] focus:shadow-brutal";
+  // Detailed Student Stats for Report Card
+  const detailedStats = useMemo(() => {
+    if (!viewingStudent) return null;
+    let present = 0;
+    let absent = 0;
+    let fluent = 0;
+    let attempted = 0;
+    let failed = 0;
+    
+    // Get all sessions where this student has a record
+    const history = sessions
+        .filter(session => session.records.some(r => r.studentId === viewingStudent.id))
+        .map(session => {
+            const record = session.records.find(r => r.studentId === viewingStudent.id)!;
+            if (record.status === 'present') present++;
+            else absent++;
+            
+            if (record.memoryVerseStatus === 'fluent') fluent++;
+            else if (record.memoryVerseStatus === 'attempted') attempted++;
+            else if (record.memoryVerseStatus === 'failed') failed++;
+
+            return {
+                id: session.id,
+                date: session.date,
+                topic: session.topic,
+                memoryVerse: session.memoryVerse,
+                status: record.status,
+                verseStatus: record.memoryVerseStatus
+            };
+        })
+        .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
+    const total = present + absent;
+    const attendancePct = total > 0 ? Math.round((present / total) * 100) : 0;
+    
+    return { 
+        present, absent, total, attendancePct, 
+        fluent, attempted, failed, history 
+    };
+  }, [viewingStudent, sessions]);
+
+  const InputStyle = `w-full bg-zinc-900 border-2 border-zinc-700 text-white ${s.input} focus:border-primary-500 focus:outline-none transition-all duration-200 placeholder-zinc-600 font-mono focus:scale-[1.01] focus:shadow-brutal`;
 
   return (
-    <div className="space-y-8 relative">
+    <div className={`${s.space} relative`}>
       
       {/* Top Section */}
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
+      <div className={`grid grid-cols-1 xl:grid-cols-3 ${s.gridGap}`}>
         
         {/* Add Student Form */}
-        <div className="xl:col-span-2 bg-zinc-800 p-8 border-2 border-zinc-700 shadow-brutal hover:border-white transition-all duration-300 hover:shadow-brutal-lg">
-            <div className="flex justify-between items-start mb-6 border-b-2 border-zinc-700 pb-4">
+        <div className={`xl:col-span-2 bg-zinc-800 ${s.p} border-2 border-zinc-700 shadow-brutal hover:border-white transition-all duration-300 hover:shadow-brutal-lg`}>
+            <div className={`flex justify-between items-start mb-6 border-b-2 border-zinc-700 pb-4`}>
                 <h3 className="text-xl font-black text-white uppercase flex items-center gap-3">
                   <UserPlus className="w-6 h-6" />
                   New Recruit
@@ -539,11 +655,11 @@ export const StudentManager: React.FC<StudentManagerProps> = ({
             </div>
             
             <form onSubmit={handleAddStudent} className="space-y-6">
-                <div className="flex flex-col sm:flex-row gap-6">
+                <div className={`flex flex-col sm:flex-row ${s.gap}`}>
                   {/* Photo Upload */}
                   <div className="flex-shrink-0">
                     <div 
-                      className="w-24 h-24 bg-zinc-900 border-2 border-dashed border-zinc-600 flex items-center justify-center cursor-pointer hover:border-primary-500 transition-colors duration-300 overflow-hidden relative group"
+                      className={`w-24 h-24 bg-zinc-900 border-2 border-dashed border-zinc-600 flex items-center justify-center cursor-pointer hover:border-primary-500 transition-colors duration-300 overflow-hidden relative group`}
                       onClick={() => fileInputRef.current?.click()}
                     >
                       {newPhoto ? (
@@ -562,8 +678,8 @@ export const StudentManager: React.FC<StudentManagerProps> = ({
                     <p className="text-[10px] text-center text-zinc-500 font-mono mt-2 uppercase">PHOTO (OPT)</p>
                   </div>
 
-                  <div className="flex-1 space-y-4">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className={`flex-1 ${s.space}`}>
+                    <div className={`grid grid-cols-1 sm:grid-cols-2 ${s.gap}`}>
                       <input
                         type="text"
                         placeholder="FULL NAME *"
@@ -601,7 +717,7 @@ export const StudentManager: React.FC<StudentManagerProps> = ({
                        </div>
                     </div>
                     
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className={`grid grid-cols-1 sm:grid-cols-2 ${s.gap}`}>
                          <input
                           type="date"
                           value={newBirthday}
@@ -616,7 +732,7 @@ export const StudentManager: React.FC<StudentManagerProps> = ({
                           className={InputStyle}
                         />
                     </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className={`grid grid-cols-1 sm:grid-cols-2 ${s.gap}`}>
                         <input
                             type="text"
                             placeholder="CONTACT INFO"
@@ -646,7 +762,7 @@ export const StudentManager: React.FC<StudentManagerProps> = ({
         {/* Class Manager */}
         <div className="bg-zinc-800 border-2 border-zinc-700 shadow-brutal flex flex-col h-full hover:border-white transition-colors duration-300">
              <div 
-                className="p-6 flex items-center justify-between cursor-pointer hover:bg-zinc-700 transition-colors border-b-2 border-zinc-700"
+                className={`p-6 flex items-center justify-between cursor-pointer hover:bg-zinc-700 transition-colors border-b-2 border-zinc-700`}
                 onClick={() => setIsClassMgrOpen(!isClassMgrOpen)}
              >
                 <h3 className="text-xl font-black text-white uppercase flex items-center gap-3">
@@ -703,10 +819,74 @@ export const StudentManager: React.FC<StudentManagerProps> = ({
              </div>
         </div>
       </div>
+      
+      {/* Performance Insights Row */}
+      <div className={`grid grid-cols-1 md:grid-cols-2 ${s.gap}`}>
+          {/* Top Performers */}
+          <div className={`bg-zinc-800 border-2 border-zinc-700 shadow-brutal ${s.p} hover:border-white transition-all duration-300`}>
+              <div className="flex items-center justify-between mb-4 border-b border-zinc-700 pb-2">
+                  <h3 className="text-sm font-black text-white uppercase flex items-center gap-2">
+                      <Trophy className="w-4 h-4 text-yellow-500" />
+                      Top Performers
+                  </h3>
+              </div>
+              {topStudents.length > 0 ? (
+                  <div className="space-y-2">
+                      {topStudents.map((s, idx) => (
+                          <div key={s.id} className="flex items-center gap-3 p-2 bg-zinc-900 border border-zinc-800 hover:border-yellow-500 transition-all duration-200 group">
+                              <div className={`w-6 h-6 flex items-center justify-center font-black text-xs text-black border border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] ${idx === 0 ? 'bg-yellow-400' : idx === 1 ? 'bg-zinc-300' : 'bg-orange-700 text-white'}`}>
+                                  {idx + 1}
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                  <p className="text-white font-bold text-xs truncate uppercase">{s.name}</p>
+                              </div>
+                              <div className="text-right">
+                                  <span className="text-sm font-black text-white block">{s.percentage}%</span>
+                              </div>
+                          </div>
+                      ))}
+                  </div>
+              ) : (
+                  <div className="text-center py-4 text-zinc-500 font-mono text-xs border border-dashed border-zinc-800">
+                      NO_DATA
+                  </div>
+              )}
+          </div>
+
+          {/* At Risk */}
+          <div className={`bg-zinc-800 border-2 border-zinc-700 shadow-brutal ${s.p} hover:border-white transition-all duration-300`}>
+              <div className="flex items-center justify-between mb-4 border-b border-zinc-700 pb-2">
+                  <h3 className="text-sm font-black text-white uppercase flex items-center gap-2">
+                      <AlertOctagon className="w-4 h-4 text-red-500" />
+                      Needs Attention
+                  </h3>
+                  <span className="text-[10px] bg-red-900 text-red-200 px-1.5 py-0.5 border border-red-700 font-mono">{'<'}30%</span>
+              </div>
+              {atRiskStudents.length > 0 ? (
+                  <div className="overflow-y-auto max-h-[140px] custom-scrollbar pr-1 space-y-2">
+                      {atRiskStudents.map((s) => (
+                          <div key={s.id} className="flex items-center justify-between bg-red-900/10 p-2 border-l-2 border-red-500 hover:bg-red-900/20 transition-colors">
+                              <div>
+                                  <p className="text-white font-bold text-xs uppercase">{s.name}</p>
+                              </div>
+                              <span className="text-red-500 font-black font-mono text-xs">{s.percentage}%</span>
+                          </div>
+                      ))}
+                  </div>
+              ) : (
+                  <div className="flex-1 flex flex-col items-center justify-center text-center py-4 border border-dashed border-zinc-800 bg-zinc-900/50">
+                      <div className="w-8 h-8 rounded-full bg-green-900/20 flex items-center justify-center mb-1">
+                          <CheckCircle2 className="w-4 h-4 text-green-500" />
+                      </div>
+                      <span className="text-zinc-500 font-mono text-xs uppercase">All Clear</span>
+                  </div>
+              )}
+          </div>
+      </div>
 
       {/* Roster List */}
       <div className="bg-zinc-800 border-2 border-zinc-700 shadow-brutal hover:border-white transition-colors duration-300">
-        <div className="px-8 py-6 border-b-2 border-zinc-700 flex flex-col md:flex-row justify-between items-center gap-6">
+        <div className={`${s.headerP} border-b-2 border-zinc-700 flex flex-col md:flex-row justify-between items-center gap-6`}>
             <h3 className="text-xl font-black text-white uppercase">
                 Personnel <span className="text-zinc-500 font-mono text-lg">[{students.length}]</span>
             </h3>
@@ -722,11 +902,11 @@ export const StudentManager: React.FC<StudentManagerProps> = ({
             </div>
         </div>
 
-        <div className="px-8 py-3 bg-zinc-900 border-b-2 border-zinc-700 min-h-[52px] flex items-center">
+        <div className={`${s.listP} bg-zinc-900 border-b-2 border-zinc-700 min-h-[52px] flex items-center`}>
             {selectedIds.size > 0 ? (
                  <div className="flex flex-col sm:flex-row sm:items-center justify-between w-full gap-4 animate-fade-in">
                     <div className="flex items-center gap-4">
-                         <span className="text-primary-500 font-bold font-mono text-sm uppercase border border-primary-900 bg-primary-900/10 px-2 py-1 animate-pulse-slow">{selectedIds.size} SELECTED</span>
+                         <span className="text-primary-500 font-bold font-mono text-sm uppercase border border-primary-900 bg-primary-900/10 px-2 py-1">{selectedIds.size} SELECTED</span>
                          <button 
                             onClick={() => setSelectedIds(new Set())}
                             className="text-xs text-zinc-500 hover:text-white underline decoration-zinc-600 hover:decoration-white uppercase"
@@ -772,7 +952,7 @@ export const StudentManager: React.FC<StudentManagerProps> = ({
 
         <ul className="divide-y-2 divide-zinc-700">
           {filteredStudents.length === 0 ? (
-            <li className="px-6 py-12 text-center text-zinc-500 font-mono text-sm uppercase animate-pulse">
+            <li className={`${s.listP} text-center text-zinc-500 font-mono text-sm uppercase`}>
               NO_RECORDS_FOUND
             </li>
           ) : (
@@ -784,10 +964,9 @@ export const StudentManager: React.FC<StudentManagerProps> = ({
                 <li 
                     key={student.id} 
                     className={`
-                        px-6 py-4 flex items-center justify-between transition-all duration-200 group
+                        ${s.listP} flex items-center justify-between transition-all duration-200 group
                         ${isSelected ? 'bg-primary-900/10 pl-8 border-l-4 border-primary-500' : 'hover:bg-zinc-800 hover:pl-10'}
                     `}
-                    style={{ animationDelay: `${idx * 50}ms` }}
                 >
                   <div className="flex items-center gap-6 flex-1">
                     <input
@@ -819,7 +998,7 @@ export const StudentManager: React.FC<StudentManagerProps> = ({
                             </span>
                           )}
                           {student.className && (
-                            <span className="px-2 py-0.5 text-[10px] font-bold uppercase bg-zinc-950 text-zinc-400 border border-zinc-800 transition-colors group-hover:border-zinc-500">
+                            <span className="px-2 py-0.5 text-[10px] font-bold uppercase bg-zinc-950 text-zinc-400 px-1 border border-zinc-800 transition-colors group-hover:border-zinc-500">
                                 {student.className}
                             </span>
                           )}
@@ -857,7 +1036,7 @@ export const StudentManager: React.FC<StudentManagerProps> = ({
       {viewingClass && (
            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90 backdrop-blur-sm animate-fade-in" onClick={() => setViewingClass(null)}>
               <div 
-                  className="bg-zinc-900 w-full max-w-lg border-4 border-white shadow-brutal-lg flex flex-col max-h-[90vh] animate-zoom-in" 
+                  className="bg-zinc-900 w-full max-w-lg border-4 border-white shadow-brutal-lg flex flex-col max-h-[90vh] animate-scale-in" 
                   onClick={e => e.stopPropagation()}
               >
                   {/* ... Header and Content Implementation similar logic but brutalist styles ... */}
@@ -912,11 +1091,11 @@ export const StudentManager: React.FC<StudentManagerProps> = ({
                                     <>
                                         <div className="grid grid-cols-2 gap-4">
                                             <div className="bg-zinc-800 border-2 border-zinc-600 p-4 text-center hover:border-white transition-colors duration-300">
-                                                 <span className="text-4xl font-black text-white block animate-pop">{stats.studentCount}</span>
+                                                 <span className="text-4xl font-black text-white block">{stats.studentCount}</span>
                                                  <span className="text-xs font-mono uppercase text-zinc-500">Enrolled</span>
                                             </div>
                                             <div className="bg-zinc-800 border-2 border-zinc-600 p-4 text-center hover:border-white transition-colors duration-300">
-                                                 <span className={`text-4xl font-black block animate-pop ${stats.percentage > 80 ? 'text-green-500' : 'text-white'}`}>{stats.percentage}%</span>
+                                                 <span className={`text-4xl font-black block ${stats.percentage > 80 ? 'text-green-500' : 'text-white'}`}>{stats.percentage}%</span>
                                                  <span className="text-xs font-mono uppercase text-zinc-500">Avg. Attendance</span>
                                             </div>
                                         </div>
@@ -968,7 +1147,7 @@ export const StudentManager: React.FC<StudentManagerProps> = ({
       {viewingStudent && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90 backdrop-blur-sm animate-fade-in" onClick={() => setViewingStudent(null)}>
               <div 
-                  className="bg-zinc-900 w-full max-w-lg border-4 border-white shadow-brutal-lg flex flex-col max-h-[90vh] animate-zoom-in" 
+                  className="bg-zinc-900 w-full max-w-2xl border-4 border-white shadow-brutal-lg flex flex-col max-h-[90vh] animate-scale-in" 
                   onClick={e => e.stopPropagation()}
               >
                   <div className="px-6 py-6 border-b-4 border-white bg-white flex justify-between items-center">
@@ -980,7 +1159,7 @@ export const StudentManager: React.FC<StudentManagerProps> = ({
                       </button>
                   </div>
                   
-                  <div className="p-8 overflow-y-auto bg-zinc-900">
+                  <div className="p-8 overflow-y-auto bg-zinc-900 custom-scrollbar">
                      {isEditingDetails && editFormData ? (
                         <div className="space-y-6">
                             <div className="flex justify-center">
@@ -1013,10 +1192,10 @@ export const StudentManager: React.FC<StudentManagerProps> = ({
                             <input type="text" value={editFormData.guardianContact || ''} onChange={(e) => setEditFormData({...editFormData, guardianContact: e.target.value})} className={InputStyle} placeholder="CONTACT" />
                             <textarea rows={3} value={editFormData.notes || ''} onChange={(e) => setEditFormData({...editFormData, notes: e.target.value})} className={InputStyle} placeholder="NOTES" />
                         </div>
-                     ) : (
+                     ) : detailedStats ? (
                          <div className="space-y-8">
-                            <div className="flex items-center gap-6">
-                                <div className="w-24 h-24 bg-zinc-800 border-2 border-white shadow-brutal flex-shrink-0 animate-slide-in">
+                            <div className="flex items-start gap-6">
+                                <div className="w-24 h-24 bg-zinc-800 border-2 border-zinc-700 shadow-brutal flex-shrink-0">
                                     {viewingStudent.photo ? (
                                         <img src={viewingStudent.photo} alt={viewingStudent.name} className="w-full h-full object-cover grayscale" />
                                     ) : (
@@ -1025,56 +1204,128 @@ export const StudentManager: React.FC<StudentManagerProps> = ({
                                         </div>
                                     )}
                                 </div>
-                                <div>
-                                    <h2 className="text-3xl font-black text-white uppercase tracking-tighter animate-slide-in-right">
-                                        {viewingStudent.name}
-                                    </h2>
-                                    <div className="flex flex-wrap items-center gap-2 mt-2">
-                                        <span className="px-2 py-1 text-xs font-bold uppercase bg-primary-600 text-white border border-primary-900 animate-pop">
-                                            {viewingStudent.className || 'UNASSIGNED'}
-                                        </span>
-                                        {viewingStudent.birthday && (
-                                            <span className="text-sm font-mono text-zinc-400">
-                                                {getAge(viewingStudent.birthday)} YRS
-                                            </span>
-                                        )}
+                                <div className="flex-1">
+                                    <div className="flex justify-between items-start">
+                                        <div>
+                                            <h2 className="text-3xl font-black text-white uppercase tracking-tighter">
+                                                {viewingStudent.name}
+                                            </h2>
+                                            <div className="flex flex-wrap items-center gap-2 mt-2">
+                                                <span className="px-2 py-1 text-xs font-bold uppercase bg-primary-600 text-white border border-primary-900">
+                                                    {viewingStudent.className || 'UNASSIGNED'}
+                                                </span>
+                                                {viewingStudent.birthday && (
+                                                    <span className="text-sm font-mono text-zinc-400">
+                                                        {getAge(viewingStudent.birthday)} YRS
+                                                    </span>
+                                                )}
+                                            </div>
+                                        </div>
+                                        <Button size="sm" variant="outline" onClick={() => exportStudentHistoryToCSV(viewingStudent, detailedStats.history)}>
+                                            <Download className="w-4 h-4 mr-2" />
+                                            Report Card
+                                        </Button>
                                     </div>
+                                    {(viewingStudent.guardian || viewingStudent.guardianContact) && (
+                                        <div className="mt-3 text-xs font-mono text-zinc-500 border-l-2 border-zinc-700 pl-3">
+                                            {viewingStudent.guardian && <p className="uppercase">{viewingStudent.guardian}</p>}
+                                            {viewingStudent.guardianContact && <p>{viewingStudent.guardianContact}</p>}
+                                        </div>
+                                    )}
                                 </div>
                             </div>
 
-                            {/* Stats */}
-                            {(() => {
-                                const stats = getStudentStats(viewingStudent.id);
-                                return (
-                                    <div className="bg-zinc-800 border-2 border-zinc-700 p-4 flex items-center gap-6 hover:border-white transition-colors duration-300">
-                                        <div className={`text-3xl font-black animate-pop ${stats.percentage > 50 ? 'text-white' : 'text-red-500'}`}>
-                                            {stats.percentage}%
-                                        </div>
-                                        <div className="flex flex-col text-xs font-mono uppercase text-zinc-500">
-                                            <span>Attendance Rate</span>
-                                            <span>{stats.total} Sessions</span>
-                                        </div>
-                                    </div>
-                                );
-                            })()}
+                            {/* Report Card Grid */}
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                <div className="bg-zinc-800 border-2 border-zinc-700 p-3 flex flex-col items-center justify-center hover:border-white transition-colors">
+                                    <span className={`text-2xl font-black ${detailedStats.attendancePct >= 80 ? 'text-green-500' : detailedStats.attendancePct >= 50 ? 'text-yellow-500' : 'text-red-500'}`}>
+                                        {detailedStats.attendancePct}%
+                                    </span>
+                                    <span className="text-[10px] font-mono uppercase text-zinc-500">Attendance</span>
+                                </div>
+                                <div className="bg-zinc-800 border-2 border-zinc-700 p-3 flex flex-col items-center justify-center hover:border-white transition-colors">
+                                    <span className="text-2xl font-black text-white">{detailedStats.total}</span>
+                                    <span className="text-[10px] font-mono uppercase text-zinc-500">Sessions</span>
+                                </div>
+                                <div className="bg-zinc-800 border-2 border-zinc-700 p-3 flex flex-col items-center justify-center hover:border-white transition-colors">
+                                    <span className="text-2xl font-black text-purple-500">{detailedStats.fluent}</span>
+                                    <span className="text-[10px] font-mono uppercase text-zinc-500">Fluent Verses</span>
+                                </div>
+                                <div className="bg-zinc-800 border-2 border-zinc-700 p-3 flex flex-col items-center justify-center hover:border-white transition-colors">
+                                    <span className="text-2xl font-black text-blue-500">{detailedStats.attempted}</span>
+                                    <span className="text-[10px] font-mono uppercase text-zinc-500">Attempts</span>
+                                </div>
+                            </div>
+                            
+                            {/* Notes Section */}
+                            {viewingStudent.notes && (
+                                <div className="bg-zinc-800/50 p-4 border border-zinc-700 text-zinc-400 text-xs font-mono">
+                                    <span className="text-[10px] text-zinc-500 uppercase font-bold block mb-1">NOTES</span>
+                                    {viewingStudent.notes}
+                                </div>
+                            )}
 
-                            <div className="space-y-4 font-mono text-sm text-zinc-300">
-                                <div className="border-l-2 border-zinc-700 pl-4 hover:pl-6 transition-all duration-300 hover:border-primary-500">
-                                    <p className="text-xs text-zinc-500 uppercase font-bold">Guardian</p>
-                                    <p>{viewingStudent.guardian || 'N/A'}</p>
+                            {/* Full History Log */}
+                            <div>
+                                <h3 className="text-sm font-bold uppercase text-zinc-500 mb-3 flex items-center gap-2 border-b border-zinc-700 pb-2">
+                                    <Calendar className="w-4 h-4" />
+                                    Session History
+                                </h3>
+                                <div className="border-2 border-zinc-700 max-h-60 overflow-y-auto bg-zinc-800 custom-scrollbar">
+                                    {detailedStats.history.length > 0 ? (
+                                        <table className="w-full text-left text-xs font-mono">
+                                            <thead className="bg-zinc-900 sticky top-0 z-10">
+                                                <tr>
+                                                    <th className="p-3 font-bold text-zinc-400 border-b border-zinc-700">DATE</th>
+                                                    <th className="p-3 font-bold text-zinc-400 border-b border-zinc-700">TOPIC/VERSE</th>
+                                                    <th className="p-3 font-bold text-zinc-400 text-right border-b border-zinc-700">STATUS</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody className="divide-y divide-zinc-700">
+                                                {detailedStats.history.map((record) => (
+                                                    <tr key={record.id} className="hover:bg-zinc-700/50 transition-colors">
+                                                        <td className="p-3 text-zinc-300 whitespace-nowrap">
+                                                            {new Date(record.date).toLocaleDateString('en-GB', {day:'2-digit', month:'short'})}
+                                                        </td>
+                                                        <td className="p-3 text-zinc-400">
+                                                            <div className="flex flex-col">
+                                                                <span className="text-zinc-300 font-bold uppercase truncate max-w-[150px]">{record.topic || '-'}</span>
+                                                                {record.memoryVerse && (
+                                                                    <span className="text-[10px] text-yellow-600/80 flex items-center gap-1">
+                                                                        <ScrollText className="w-3 h-3" />
+                                                                        {record.memoryVerse}
+                                                                    </span>
+                                                                )}
+                                                            </div>
+                                                        </td>
+                                                        <td className="p-3 text-right">
+                                                            <div className="flex flex-col items-end gap-1">
+                                                                <span className={`px-1.5 py-0.5 font-bold uppercase ${record.status === 'present' ? 'bg-green-900 text-green-400' : 'bg-red-900 text-red-400'}`}>
+                                                                    {record.status === 'present' ? 'PRS' : 'ABS'}
+                                                                </span>
+                                                                {record.verseStatus && (
+                                                                     <span className={`px-1.5 py-0.5 text-[10px] uppercase flex items-center gap-1 ${
+                                                                         record.verseStatus === 'fluent' ? 'text-purple-400' : 
+                                                                         record.verseStatus === 'attempted' ? 'text-blue-400' : 'text-red-400'
+                                                                     }`}>
+                                                                         {record.verseStatus === 'fluent' && <Star className="w-3 h-3 fill-current" />}
+                                                                         {record.verseStatus === 'attempted' && <Minus className="w-3 h-3" />}
+                                                                         {record.verseStatus}
+                                                                     </span>
+                                                                )}
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    ) : (
+                                        <div className="p-8 text-center text-zinc-500">NO HISTORY RECORDED</div>
+                                    )}
                                 </div>
-                                <div className="border-l-2 border-zinc-700 pl-4 hover:pl-6 transition-all duration-300 hover:border-primary-500">
-                                    <p className="text-xs text-zinc-500 uppercase font-bold">Contact</p>
-                                    <p>{viewingStudent.guardianContact || 'N/A'}</p>
-                                </div>
-                                {viewingStudent.notes && (
-                                    <div className="bg-zinc-800 p-4 border border-zinc-700 text-zinc-400 text-xs">
-                                        {viewingStudent.notes}
-                                    </div>
-                                )}
                             </div>
                          </div>
-                     )}
+                     ) : null}
                   </div>
 
                   <div className="px-6 py-6 bg-zinc-900 border-t-2 border-zinc-700 flex justify-end gap-3">
@@ -1083,15 +1334,116 @@ export const StudentManager: React.FC<StudentManagerProps> = ({
                             <Button variant="ghost" onClick={handleCancelEdit}>CANCEL</Button>
                             <Button onClick={handleSaveEdit}>SAVE</Button>
                          </>
-                     ) : (
+                     ) : viewingStudent ? (
                          <>
                             <Button variant="danger" onClick={() => handleRemoveStudent(viewingStudent.id)} className="mr-auto">DELETE</Button>
                             <Button variant="secondary" onClick={handleStartEdit}>EDIT</Button>
                          </>
-                     )}
+                     ) : null}
                   </div>
               </div>
           </div>
+      )}
+
+      {/* Bulk Import Modal - Improved */}
+      {isImportModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90 backdrop-blur-sm animate-fade-in" onClick={() => setIsImportModalOpen(false)}>
+            <div 
+                className="bg-zinc-900 w-full max-w-2xl border-4 border-white shadow-brutal-lg flex flex-col max-h-[90vh] animate-scale-in" 
+                onClick={e => e.stopPropagation()}
+            >
+                <div className="px-6 py-6 border-b-4 border-white bg-white flex justify-between items-center">
+                    <h3 className="text-xl font-black text-black uppercase flex items-center gap-3">
+                        <FileUp className="w-6 h-6" />
+                        Bulk Import
+                    </h3>
+                    <button onClick={() => setIsImportModalOpen(false)} className="text-black border-2 border-black hover:bg-black hover:text-white p-1 transition-colors">
+                        <X className="w-6 h-6" />
+                    </button>
+                </div>
+
+                <div className="p-8 overflow-y-auto bg-zinc-900 custom-scrollbar space-y-8">
+                    {/* Step 1: Template */}
+                    <div className="bg-zinc-800 p-4 border-2 border-zinc-700">
+                        <h4 className="text-white font-bold uppercase mb-2">1. Get the Template</h4>
+                        <p className="text-zinc-400 text-xs font-mono mb-4">Download the CSV template to ensure your data is formatted correctly.</p>
+                        <Button size="sm" variant="secondary" onClick={downloadTemplate} className="w-full sm:w-auto">
+                            <Download className="w-4 h-4 mr-2" />
+                            Download Template.csv
+                        </Button>
+                    </div>
+
+                    {/* Step 2: Input */}
+                    <div className="space-y-4">
+                         <h4 className="text-white font-bold uppercase">2. Upload Data</h4>
+                         
+                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div 
+                                className="border-2 border-dashed border-zinc-600 hover:border-primary-500 hover:bg-zinc-800 transition-all p-6 flex flex-col items-center justify-center cursor-pointer min-h-[150px] group"
+                                onClick={() => fileImportRef.current?.click()}
+                            >
+                                <Upload className="w-8 h-8 text-zinc-500 group-hover:text-primary-500 mb-2 transition-colors" />
+                                <span className="text-zinc-400 font-mono text-xs uppercase group-hover:text-white">Click to Upload CSV</span>
+                                <input 
+                                    type="file" 
+                                    ref={fileImportRef} 
+                                    className="hidden" 
+                                    accept=".csv,.txt"
+                                    onChange={handleImportFile}
+                                />
+                            </div>
+                            <textarea
+                                value={importText}
+                                onChange={(e) => setImportText(e.target.value)}
+                                className="w-full h-full min-h-[150px] bg-zinc-900 border-2 border-zinc-700 text-white p-3 font-mono text-xs focus:border-primary-500 outline-none resize-none placeholder-zinc-600"
+                                placeholder={`Paste CSV data here...\n\nExample:\nJohn Doe,Junior,Jane Doe,555-1234`}
+                            />
+                         </div>
+                    </div>
+
+                    {/* Step 3: Preview */}
+                    {parsedImportData.length > 0 && (
+                        <div className="animate-fade-in">
+                            <h4 className="text-white font-bold uppercase mb-4 flex justify-between items-center">
+                                <span>3. Preview</span>
+                                <span className="text-green-500 text-xs font-mono bg-green-900/20 px-2 py-1 border border-green-900">
+                                    {parsedImportData.length} Valid Records
+                                </span>
+                            </h4>
+                            <div className="border-2 border-zinc-700 max-h-48 overflow-y-auto bg-zinc-800">
+                                 <table className="w-full text-left text-xs font-mono">
+                                    <thead className="bg-zinc-900 sticky top-0">
+                                        <tr>
+                                            <th className="p-2 text-zinc-500 border-b border-zinc-700">Name</th>
+                                            <th className="p-2 text-zinc-500 border-b border-zinc-700">Class</th>
+                                            <th className="p-2 text-zinc-500 border-b border-zinc-700">Details</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-zinc-700">
+                                        {parsedImportData.map((s, i) => (
+                                            <tr key={i}>
+                                                <td className="p-2 text-white">{s.name}</td>
+                                                <td className="p-2 text-zinc-400">{s.className || '-'}</td>
+                                                <td className="p-2 text-zinc-500">
+                                                    {[s.guardian, s.birthday].filter(Boolean).join(' | ')}
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                 </table>
+                            </div>
+                        </div>
+                    )}
+                </div>
+
+                <div className="px-6 py-6 bg-zinc-900 border-t-2 border-zinc-700 flex justify-end gap-3">
+                    <Button variant="ghost" onClick={() => setIsImportModalOpen(false)}>CANCEL</Button>
+                    <Button onClick={handleImportSubmit} disabled={parsedImportData.length === 0}>
+                        IMPORT {parsedImportData.length > 0 && `(${parsedImportData.length})`}
+                    </Button>
+                </div>
+            </div>
+        </div>
       )}
 
       {/* Confirmation Modal - Brutalist */}
@@ -1101,11 +1453,11 @@ export const StudentManager: React.FC<StudentManagerProps> = ({
             onClick={closeConfirmation}
         >
             <div 
-                className="bg-red-900 w-full max-w-sm border-4 border-red-500 shadow-brutal p-6 animate-wiggle"
+                className="bg-red-900 w-full max-w-sm border-4 border-red-500 shadow-brutal p-6 animate-scale-in"
                 onClick={e => e.stopPropagation()}
             >
                 <div className="flex items-start gap-4 mb-4">
-                    <AlertTriangle className="w-8 h-8 text-white animate-pulse" />
+                    <AlertTriangle className="w-8 h-8 text-white" />
                     <div>
                         <h3 className="text-xl font-black text-white uppercase">{confirmation.title}</h3>
                         <p className="text-red-200 text-sm font-mono mt-2">{confirmation.message}</p>

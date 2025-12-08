@@ -1,10 +1,12 @@
-import { Student, ClassSession, ClassConfig } from '../types';
+
+import { Student, ClassSession, ClassConfig, Density } from '../types';
 
 const STORAGE_KEYS = {
   STUDENTS: 'sundaykeep_students',
   SESSIONS: 'sundaykeep_sessions',
   CLASSES: 'sundaykeep_classes',
   CLASS_CONFIGS: 'sundaykeep_class_configs',
+  SETTINGS: 'sundaykeep_settings',
 };
 
 export const saveStudents = (students: Student[]) => {
@@ -61,6 +63,20 @@ export const getClassConfigs = (): Record<string, ClassConfig> => {
   return data ? JSON.parse(data) : {};
 };
 
+export const saveDensity = (density: Density) => {
+  const settings = { density };
+  localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(settings));
+};
+
+export const getDensity = (): Density => {
+  const data = localStorage.getItem(STORAGE_KEYS.SETTINGS);
+  if (data) {
+    const parsed = JSON.parse(data);
+    return parsed.density || 'default';
+  }
+  return 'default';
+};
+
 // Helper to escape CSV fields (handle commas, quotes, newlines)
 const escapeCsvField = (value: string | number | undefined | null): string => {
   if (value === undefined || value === null) return '';
@@ -75,7 +91,8 @@ export const exportToCSV = (sessions: ClassSession[], students: Student[]) => {
   // Create Header Row
   const headers = [
     'Date', 
-    'Topic', 
+    'Topic',
+    'Memory Verse', 
     'Total Present', 
     'Total Absent', 
     ...students.map(s => {
@@ -94,17 +111,24 @@ export const exportToCSV = (sessions: ClassSession[], students: Student[]) => {
     const presentCount = session.records.filter(r => r.status === 'present').length;
     const absentCount = session.records.filter(r => r.status === 'absent').length;
     
-    const studentAttendance = students.map(student => {
+    const studentData = students.map(student => {
       const record = session.records.find(r => r.studentId === student.id);
-      return record ? (record.status === 'present' ? 'Present' : 'Absent') : '-';
+      if (!record) return '-';
+      
+      let status = record.status === 'present' ? 'Present' : 'Absent';
+      if (record.memoryVerseStatus) {
+        status += ` | Verse: ${record.memoryVerseStatus}`;
+      }
+      return status;
     });
 
     return [
       session.date,
       session.topic || '',
+      session.memoryVerse || '',
       presentCount,
       absentCount,
-      ...studentAttendance
+      ...studentData
     ].map(escapeCsvField).join(',');
   });
 
@@ -114,6 +138,36 @@ export const exportToCSV = (sessions: ClassSession[], students: Student[]) => {
   const link = document.createElement('a');
   link.setAttribute('href', url);
   link.setAttribute('download', `attendance_export_${new Date().toISOString().split('T')[0]}.csv`);
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+};
+
+export const exportStudentHistoryToCSV = (student: Student, history: any[]) => {
+  const headers = ['Date', 'Topic', 'Memory Verse', 'Attendance Status', 'Verse Mastery'].map(escapeCsvField);
+  
+  const rows = history.map(h => [
+    h.date,
+    h.topic || '',
+    h.memoryVerse || '',
+    h.status === 'present' ? 'PRESENT' : 'ABSENT',
+    h.verseStatus ? h.verseStatus.toUpperCase() : '-'
+  ].map(escapeCsvField).join(','));
+
+  // Add Summary Header
+  const summary = [
+    `STUDENT REPORT: ${student.name.toUpperCase()}`,
+    `CLASS: ${student.className || 'N/A'}`,
+    `GENERATED: ${new Date().toLocaleDateString()}`,
+    ''
+  ].join('\n');
+
+  const csvContent = summary + headers.join(',') + '\n' + rows.join('\n');
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.setAttribute('href', url);
+  link.setAttribute('download', `${student.name.replace(/\s+/g, '_')}_Report.csv`);
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);

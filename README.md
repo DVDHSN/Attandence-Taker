@@ -1,5 +1,5 @@
 
-# [Attendance Manager: A Modern Class & Student Tracker](https://attendancemgr.netlify.app/)
+# Attendance Manager: A Modern Class & Student Tracker
 
 A modern, responsive, and offline-first web application designed for managing class attendance. It allows teachers, club leaders, and administrators to effortlessly track student presence, manage student rosters, and visualize attendance data over time.
 

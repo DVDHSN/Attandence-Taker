@@ -20,6 +20,8 @@
             },
             transitionTimingFunction: {
               'smooth': 'cubic-bezier(0.16, 1, 0.3, 1)',
+              'bounce-sm': 'cubic-bezier(0.34, 1.56, 0.64, 1)',
+              'out-expo': 'cubic-bezier(0.19, 1, 0.22, 1)',
             },
             colors: {
               gray: {
@@ -50,57 +52,52 @@
             },
             boxShadow: {
               'brutal': '4px 4px 0px 0px rgba(0,0,0,1)',
-              'brutal-lg': '8px 8px 0px 0px rgba(239, 68, 68, 1)',
+              'brutal-lg': '8px 8px 0px 0px rgba(0,0,0,1)',
+              'brutal-xl': '12px 12px 0px 0px rgba(0,0,0,1)',
               'brutal-hover': '2px 2px 0px 0px rgba(0,0,0,1)',
               'brutal-active': '0px 0px 0px 0px rgba(0,0,0,1)',
+              'glow': '0 0 15px rgba(239, 68, 68, 0.5)',
             },
             animation: {
-              'fade-in': 'fadeIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards',
-              'fade-in-up': 'fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards',
-              'zoom-in': 'zoomIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards',
-              'slide-in': 'slideIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards',
-              'slide-in-right': 'slideInRight 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards',
+              'fade-in': 'fadeIn 0.2s ease-out forwards',
+              'slide-up': 'slideUp 0.3s ease-out forwards',
+              'scale-in': 'scaleIn 0.2s cubic-bezier(0.34, 1.56, 0.64, 1) forwards',
+              'pulse-fast': 'pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite',
               'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-              'wiggle': 'wiggle 0.3s ease-in-out',
-              'pop': 'pop 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
-              'shake': 'shake 0.5s cubic-bezier(.36,.07,.19,.97) both',
-              'spin-slow': 'spin 3s linear infinite',
+              'pop': 'pop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards',
+              'shake': 'shake 0.4s cubic-bezier(.36,.07,.19,.97) both',
+              'glitch': 'glitch 2s infinite',
             },
             keyframes: {
               fadeIn: {
                 '0%': { opacity: '0' },
                 '100%': { opacity: '1' },
               },
-              fadeInUp: {
-                '0%': { opacity: '0', transform: 'translateY(15px)' },
-                '100%': { opacity: '1', transform: 'translateY(0)' },
+              slideUp: {
+                '0%': { transform: 'translateY(10px)', opacity: '0' },
+                '100%': { transform: 'translateY(0)', opacity: '1' },
               },
-              zoomIn: {
-                '0%': { opacity: '0', transform: 'scale(0.95)' },
-                '100%': { opacity: '1', transform: 'scale(1)' },
-              },
-              slideIn: {
-                '0%': { opacity: '0', transform: 'translateX(-15px)' },
-                '100%': { opacity: '1', transform: 'translateX(0)' },
-              },
-              slideInRight: {
-                '0%': { opacity: '0', transform: 'translateX(15px)' },
-                '100%': { opacity: '1', transform: 'translateX(0)' },
-              },
-              wiggle: {
-                '0%, 100%': { transform: 'rotate(-2deg)' },
-                '50%': { transform: 'rotate(2deg)' },
+              scaleIn: {
+                '0%': { transform: 'scale(0.95)', opacity: '0' },
+                '100%': { transform: 'scale(1)', opacity: '1' },
               },
               pop: {
-                '0%': { transform: 'scale(1)' },
-                '50%': { transform: 'scale(0.95)' },
+                '0%': { transform: 'scale(0.95)' },
+                '40%': { transform: 'scale(1.02)' },
                 '100%': { transform: 'scale(1)' },
               },
               shake: {
                 '10%, 90%': { transform: 'translate3d(-1px, 0, 0)' },
                 '20%, 80%': { transform: 'translate3d(2px, 0, 0)' },
-                '30%, 50%, 70%': { transform: 'translate3d(-4px, 0, 0)' },
-                '40%, 60%': { transform: 'translate3d(4px, 0, 0)' }
+                '30%, 50%, 70%': { transform: 'translate3d(-2px, 0, 0)' },
+                '40%, 60%': { transform: 'translate3d(2px, 0, 0)' }
+              },
+              glitch: {
+                '0%': { transform: 'translate(0)' },
+                '2%': { transform: 'translate(-2px, 2px)' },
+                '4%': { transform: 'translate(2px, -2px)' },
+                '6%': { transform: 'translate(0)' },
+                '100%': { transform: 'translate(0)' },
               }
             }
           }
@@ -113,6 +110,8 @@
         color: #f4f4f5;
         -webkit-font-smoothing: antialiased;
         -moz-osx-font-smoothing: grayscale;
+        background-image: radial-gradient(#27272a 1px, transparent 1px);
+        background-size: 20px 20px;
       }
       
       /* Brutalist Scrollbar */
@@ -145,6 +144,10 @@
       input[type="date"]::-webkit-calendar-picker-indicator:hover {
         transform: scale(1.1);
       }
+      
+      .glitch-text:hover {
+        animation: glitch 0.5s infinite;
+      }
     </style>
   <script type="importmap">
 {
@@ -154,7 +157,8 @@
     "lucide-react": "https://aistudiocdn.com/lucide-react@^0.555.0",
     "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
     "recharts": "https://aistudiocdn.com/recharts@^3.5.0",
-    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.30.0"
+    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.30.0",
+    "read-excel-file": "https://esm.sh/read-excel-file@5.8.0"
   }
 }
 </script>

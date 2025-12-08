@@ -16,14 +16,15 @@ export const Button: React.FC<ButtonProps> = ({
   disabled,
   ...props 
 }) => {
-  // Base: No rounded corners, thick borders, uppercase text, hard transitions
-  const baseStyles = "inline-flex items-center justify-center font-bold tracking-wide uppercase transition-all duration-200 ease-out focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-black disabled:opacity-50 disabled:cursor-not-allowed border-2 relative active:scale-95 active:shadow-none";
+  // Base: No rounded corners, thick borders, uppercase text, consistent active state
+  // Added active:scale-95, active:shadow-none, active:translate-x/y to simulate pressing down
+  const baseStyles = "inline-flex items-center justify-center font-bold tracking-wide uppercase transition-all duration-150 ease-out focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-black disabled:opacity-50 disabled:cursor-not-allowed border-2 relative active:scale-95 active:translate-x-0 active:translate-y-0 active:shadow-none";
   
   const variants = {
-    primary: "bg-primary-600 text-white border-primary-900 shadow-brutal hover:-translate-y-1 hover:-translate-x-1 hover:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] hover:bg-primary-500",
-    secondary: "bg-gray-800 text-gray-100 border-gray-100 shadow-brutal hover:bg-gray-100 hover:text-black hover:border-black hover:-translate-y-0.5 hover:-translate-x-0.5 hover:shadow-[5px_5px_0px_0px_rgba(0,0,0,1)]",
-    danger: "bg-red-600 text-white border-red-900 shadow-brutal hover:bg-red-500 hover:-translate-y-0.5 hover:-translate-x-0.5 hover:shadow-[5px_5px_0px_0px_rgba(0,0,0,1)]",
-    ghost: "bg-transparent text-gray-400 border-transparent hover:text-white hover:bg-gray-800 hover:border-gray-700 active:bg-gray-700",
+    primary: "bg-primary-600 text-white border-primary-900 shadow-brutal hover:-translate-y-0.5 hover:-translate-x-0.5 hover:shadow-brutal-lg hover:bg-primary-500",
+    secondary: "bg-gray-800 text-gray-100 border-gray-100 shadow-brutal hover:bg-gray-100 hover:text-black hover:border-black hover:-translate-y-0.5 hover:-translate-x-0.5 hover:shadow-brutal-lg",
+    danger: "bg-red-600 text-white border-red-900 shadow-brutal hover:bg-red-500 hover:-translate-y-0.5 hover:-translate-x-0.5 hover:shadow-brutal-lg",
+    ghost: "bg-transparent text-gray-400 border-transparent hover:text-white hover:bg-gray-800 hover:border-gray-700 active:bg-gray-700 shadow-none hover:shadow-none translate-0",
     outline: "bg-transparent border-gray-500 text-gray-300 hover:border-white hover:text-white hover:bg-gray-900 hover:shadow-brutal hover:-translate-y-0.5"
   };
 
