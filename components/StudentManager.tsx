@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Student, ClassSession, ClassConfig, Density } from '../types';
 import { Button } from './Button';
-import { Trash2, UserPlus, Users, Search, FolderPlus, Edit2, Check, X, ChevronDown, ChevronUp, Phone, FileText, User, PieChart, GraduationCap, Cake, Camera, Upload, Sparkles, AlertTriangle, FileUp, Download, MapPin, Trophy, TrendingDown, Star, ScrollText, Calendar, Minus, AlertOctagon, CheckCircle2 } from 'lucide-react';
+import { Trash2, UserPlus, Users, Search, FolderPlus, Edit2, Check, X, ChevronDown, ChevronUp, Phone, FileText, User, PieChart, GraduationCap, Cake, Camera, Upload, Sparkles, AlertTriangle, FileUp, Download, MapPin, Trophy, TrendingDown, Star, ScrollText, Calendar, Minus, AlertOctagon, CheckCircle2, ArrowUpDown } from 'lucide-react';
 import { exportStudentHistoryToCSV } from '../services/storageService';
 
 interface StudentManagerProps {
@@ -38,6 +38,7 @@ export const StudentManager: React.FC<StudentManagerProps> = ({
   const [autoClass, setAutoClass] = useState(true);
   
   const [searchTerm, setSearchTerm] = useState('');
+  const [sortBy, setSortBy] = useState<'name' | 'className' | 'guardian' | 'guardianContact' | 'address'>('name');
   
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [bulkClassId, setBulkClassId] = useState('');
@@ -109,10 +110,27 @@ export const StudentManager: React.FC<StudentManagerProps> = ({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const editFileInputRef = useRef<HTMLInputElement>(null);
 
-  const filteredStudents = students.filter(student => 
-    student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (student.className && student.className.toLowerCase().includes(searchTerm.toLowerCase()))
-  );
+  const filteredStudents = useMemo(() => {
+    // 1. Filter
+    const filtered = students.filter(student => 
+        student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (student.className && student.className.toLowerCase().includes(searchTerm.toLowerCase()))
+    );
+
+    // 2. Sort
+    return filtered.sort((a, b) => {
+        const getVal = (s: Student) => (s[sortBy] || '').toString().toLowerCase();
+        const valA = getVal(a);
+        const valB = getVal(b);
+        
+        // Push empty values to the bottom
+        if (valA === valB) return 0;
+        if (valA === '') return 1; 
+        if (valB === '') return -1;
+        
+        return valA.localeCompare(valB);
+    });
+  }, [students, searchTerm, sortBy]);
 
   const studentCounts = students.reduce((acc, student) => {
     if (student.className) {
@@ -628,19 +646,20 @@ export const StudentManager: React.FC<StudentManagerProps> = ({
     };
   }, [viewingStudent, sessions]);
 
-  const InputStyle = `w-full bg-zinc-900 border-2 border-zinc-700 text-white ${s.input} focus:border-primary-500 focus:outline-none transition-all duration-200 placeholder-zinc-600 font-mono focus:scale-[1.01] focus:shadow-brutal`;
+  // Updated Input Style for more brutalist look: Thick borders, sharp focus, black background
+  const InputStyle = `w-full bg-black border-[3px] border-zinc-700 text-white ${s.input} focus:border-white focus:shadow-[4px_4px_0px_0px_#fff] focus:outline-none transition-all duration-150 placeholder-zinc-600 font-mono focus:-translate-y-1`;
 
   return (
     <div className={`${s.space} relative`}>
       
       {/* Top Section */}
-      <div className={`grid grid-cols-1 xl:grid-cols-3 ${s.gridGap}`}>
+      <div className={`grid grid-cols-1 xl:grid-cols-3 ${s.gridGap} animate-fade-in`}>
         
         {/* Add Student Form */}
-        <div className={`xl:col-span-2 bg-zinc-800 ${s.p} border-2 border-zinc-700 shadow-brutal hover:border-white transition-all duration-300 hover:shadow-brutal-lg`}>
-            <div className={`flex justify-between items-start mb-6 border-b-2 border-zinc-700 pb-4`}>
+        <div className={`xl:col-span-2 bg-zinc-800 ${s.p} border-[3px] border-zinc-600 shadow-brutal hover:border-white transition-all duration-300 hover:shadow-brutal-lg group`}>
+            <div className={`flex justify-between items-start mb-6 border-b-[3px] border-zinc-600 pb-4`}>
                 <h3 className="text-xl font-black text-white uppercase flex items-center gap-3">
-                  <UserPlus className="w-6 h-6" />
+                  <UserPlus className="w-6 h-6 group-hover:scale-110 transition-transform" />
                   New Recruit
                 </h3>
                 <Button 
@@ -659,13 +678,13 @@ export const StudentManager: React.FC<StudentManagerProps> = ({
                   {/* Photo Upload */}
                   <div className="flex-shrink-0">
                     <div 
-                      className={`w-24 h-24 bg-zinc-900 border-2 border-dashed border-zinc-600 flex items-center justify-center cursor-pointer hover:border-primary-500 transition-colors duration-300 overflow-hidden relative group`}
+                      className={`w-24 h-24 bg-zinc-900 border-[3px] border-dashed border-zinc-600 flex items-center justify-center cursor-pointer hover:border-primary-500 transition-colors duration-300 overflow-hidden relative group/photo active:scale-95 transition-transform`}
                       onClick={() => fileInputRef.current?.click()}
                     >
                       {newPhoto ? (
                         <img src={newPhoto} alt="Preview" className="w-full h-full object-cover grayscale" />
                       ) : (
-                        <Camera className="w-8 h-8 text-zinc-600 group-hover:text-primary-500 transition-colors group-hover:scale-110" />
+                        <Camera className="w-8 h-8 text-zinc-600 group-hover/photo:text-primary-500 transition-colors group-hover/photo:scale-110" />
                       )}
                     </div>
                     <input 
@@ -705,10 +724,10 @@ export const StudentManager: React.FC<StudentManagerProps> = ({
                           <button
                             type="button"
                             onClick={() => setAutoClass(!autoClass)}
-                            className={`p-3 border-2 transition-all duration-200 flex-shrink-0 ${
+                            className={`p-3 border-[3px] transition-all duration-200 flex-shrink-0 active:scale-95 ${
                                 autoClass 
                                 ? 'bg-primary-900/20 border-primary-500 text-primary-500 shadow-[2px_2px_0px_0px_#ef4444]' 
-                                : 'bg-zinc-800 border-zinc-600 text-zinc-600 hover:border-white'
+                                : 'bg-black border-zinc-600 text-zinc-600 hover:border-white'
                             }`}
                             title="Auto-Assign"
                           >
@@ -760,16 +779,16 @@ export const StudentManager: React.FC<StudentManagerProps> = ({
         </div>
 
         {/* Class Manager */}
-        <div className="bg-zinc-800 border-2 border-zinc-700 shadow-brutal flex flex-col h-full hover:border-white transition-colors duration-300">
+        <div className="bg-zinc-800 border-[3px] border-zinc-600 shadow-brutal flex flex-col h-full hover:border-white transition-colors duration-300">
              <div 
-                className={`p-6 flex items-center justify-between cursor-pointer hover:bg-zinc-700 transition-colors border-b-2 border-zinc-700`}
+                className={`p-6 flex items-center justify-between cursor-pointer hover:bg-zinc-700 transition-colors border-b-[3px] border-zinc-600`}
                 onClick={() => setIsClassMgrOpen(!isClassMgrOpen)}
              >
                 <h3 className="text-xl font-black text-white uppercase flex items-center gap-3">
                     <FolderPlus className="w-6 h-6" />
                     Classes
                 </h3>
-                <button className="text-white border-2 border-zinc-600 p-1 hover:bg-white hover:text-black transition-colors duration-200">
+                <button className="text-white border-2 border-zinc-600 p-1 hover:bg-white hover:text-black transition-colors duration-200 active:scale-95">
                     {isClassMgrOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
                 </button>
              </div>
@@ -781,23 +800,24 @@ export const StudentManager: React.FC<StudentManagerProps> = ({
                         placeholder="CLASS NAME" 
                         value={newClassName}
                         onChange={(e) => setNewClassName(e.target.value)}
-                        className="flex-1 bg-zinc-900 border-2 border-zinc-700 text-white px-3 py-2 focus:border-primary-500 outline-none text-sm font-mono placeholder-zinc-600 transition-colors"
+                        className="flex-1 bg-black border-2 border-zinc-600 text-white px-3 py-2 focus:border-white outline-none text-sm font-mono placeholder-zinc-600 transition-all focus:shadow-[2px_2px_0px_0px_#fff]"
                     />
                     <Button type="submit" disabled={!newClassName.trim()} size="sm" variant="secondary">ADD</Button>
                  </form>
                  
                  <div className="overflow-y-auto space-y-2 max-h-[250px] custom-scrollbar pr-1">
-                    {classes.map(className => {
+                    {classes.map((className, idx) => {
                         const count = studentCounts[className] || 0;
                         const config = classConfigs[className];
                         return (
                             <div 
                                 key={className} 
                                 onClick={() => handleClassClick(className)}
-                                className="group flex items-center justify-between p-3 border-2 border-zinc-700 bg-zinc-900 hover:border-primary-500 hover:bg-zinc-800 cursor-pointer transition-colors duration-200 hover:translate-x-1"
+                                className="group flex items-center justify-between p-3 border-2 border-zinc-700 bg-black hover:border-white hover:bg-zinc-900 cursor-pointer transition-colors duration-200 hover:translate-x-1 animate-slide-up opacity-0"
+                                style={{ animationDelay: `${idx * 50}ms`, animationFillMode: 'forwards' }}
                             >
                                 <div className="flex items-center gap-3 overflow-hidden">
-                                    <span className="text-white text-sm font-bold uppercase truncate group-hover:text-primary-500 transition-colors">
+                                    <span className="text-white text-sm font-bold uppercase truncate group-hover:text-white transition-colors">
                                         {className}
                                     </span>
                                     {config && (
@@ -810,7 +830,7 @@ export const StudentManager: React.FC<StudentManagerProps> = ({
                                   <span className="text-xs font-mono text-zinc-500">
                                       {count}
                                   </span>
-                                  <Edit2 className="w-3 h-3 text-zinc-500 group-hover:text-primary-500 transition-colors" />
+                                  <Edit2 className="w-3 h-3 text-zinc-500 group-hover:text-white transition-colors" />
                                 </div>
                             </div>
                         );
@@ -823,22 +843,22 @@ export const StudentManager: React.FC<StudentManagerProps> = ({
       {/* Performance Insights Row */}
       <div className={`grid grid-cols-1 md:grid-cols-2 ${s.gap}`}>
           {/* Top Performers */}
-          <div className={`bg-zinc-800 border-2 border-zinc-700 shadow-brutal ${s.p} hover:border-white transition-all duration-300`}>
+          <div className={`bg-zinc-800 border-[3px] border-zinc-600 shadow-brutal ${s.p} hover:border-white transition-all duration-300 group`}>
               <div className="flex items-center justify-between mb-4 border-b border-zinc-700 pb-2">
                   <h3 className="text-sm font-black text-white uppercase flex items-center gap-2">
-                      <Trophy className="w-4 h-4 text-yellow-500" />
+                      <Trophy className="w-4 h-4 text-yellow-500 group-hover:animate-bounce" />
                       Top Performers
                   </h3>
               </div>
               {topStudents.length > 0 ? (
                   <div className="space-y-2">
                       {topStudents.map((s, idx) => (
-                          <div key={s.id} className="flex items-center gap-3 p-2 bg-zinc-900 border border-zinc-800 hover:border-yellow-500 transition-all duration-200 group">
+                          <div key={s.id} className="flex items-center gap-3 p-2 bg-black border border-zinc-800 hover:border-yellow-500 transition-all duration-200 group/item hover:translate-x-1">
                               <div className={`w-6 h-6 flex items-center justify-center font-black text-xs text-black border border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] ${idx === 0 ? 'bg-yellow-400' : idx === 1 ? 'bg-zinc-300' : 'bg-orange-700 text-white'}`}>
                                   {idx + 1}
                               </div>
                               <div className="flex-1 min-w-0">
-                                  <p className="text-white font-bold text-xs truncate uppercase">{s.name}</p>
+                                  <p className="text-white font-bold text-xs truncate uppercase group-hover/item:text-yellow-500 transition-colors">{s.name}</p>
                               </div>
                               <div className="text-right">
                                   <span className="text-sm font-black text-white block">{s.percentage}%</span>
@@ -854,18 +874,18 @@ export const StudentManager: React.FC<StudentManagerProps> = ({
           </div>
 
           {/* At Risk */}
-          <div className={`bg-zinc-800 border-2 border-zinc-700 shadow-brutal ${s.p} hover:border-white transition-all duration-300`}>
+          <div className={`bg-zinc-800 border-[3px] border-zinc-600 shadow-brutal ${s.p} hover:border-white transition-all duration-300 group`}>
               <div className="flex items-center justify-between mb-4 border-b border-zinc-700 pb-2">
                   <h3 className="text-sm font-black text-white uppercase flex items-center gap-2">
-                      <AlertOctagon className="w-4 h-4 text-red-500" />
+                      <AlertOctagon className="w-4 h-4 text-red-500 group-hover:animate-pulse" />
                       Needs Attention
                   </h3>
-                  <span className="text-[10px] bg-red-900 text-red-200 px-1.5 py-0.5 border border-red-700 font-mono">{'<'}30%</span>
+                  <span className="text-[10px] bg-red-600 text-black px-1.5 py-0.5 border border-red-900 font-mono font-bold">{'<'}30%</span>
               </div>
               {atRiskStudents.length > 0 ? (
                   <div className="overflow-y-auto max-h-[140px] custom-scrollbar pr-1 space-y-2">
                       {atRiskStudents.map((s) => (
-                          <div key={s.id} className="flex items-center justify-between bg-red-900/10 p-2 border-l-2 border-red-500 hover:bg-red-900/20 transition-colors">
+                          <div key={s.id} className="flex items-center justify-between bg-red-950 p-2 border-l-4 border-red-500 hover:bg-red-900 transition-colors hover:pl-3">
                               <div>
                                   <p className="text-white font-bold text-xs uppercase">{s.name}</p>
                               </div>
@@ -885,28 +905,51 @@ export const StudentManager: React.FC<StudentManagerProps> = ({
       </div>
 
       {/* Roster List */}
-      <div className="bg-zinc-800 border-2 border-zinc-700 shadow-brutal hover:border-white transition-colors duration-300">
-        <div className={`${s.headerP} border-b-2 border-zinc-700 flex flex-col md:flex-row justify-between items-center gap-6`}>
+      <div className="bg-zinc-800 border-[3px] border-zinc-600 shadow-brutal hover:border-white transition-colors duration-300 animate-slide-up">
+        <div className={`${s.headerP} border-b-[3px] border-zinc-600 flex flex-col md:flex-row justify-between items-center gap-6`}>
             <h3 className="text-xl font-black text-white uppercase">
                 Personnel <span className="text-zinc-500 font-mono text-lg">[{students.length}]</span>
             </h3>
-            <div className="relative w-full md:w-80 group">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500 group-hover:text-white transition-colors" />
-                <input 
-                    type="text" 
-                    placeholder="SEARCH DATABASE..." 
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full bg-zinc-900 border-2 border-zinc-700 text-sm text-white pl-12 pr-4 py-3 focus:border-primary-500 outline-none font-mono placeholder-zinc-600 uppercase transition-colors"
-                />
+            
+            <div className="flex flex-col sm:flex-row gap-4 w-full md:w-auto">
+                {/* Sort Dropdown */}
+                 <div className="relative group w-full sm:w-48">
+                     <div className="absolute left-3 top-1/2 -translate-y-1/2 z-10 pointer-events-none">
+                         <span className="text-[10px] font-bold text-zinc-500 font-mono uppercase">Sort:</span>
+                     </div>
+                    <select
+                        value={sortBy}
+                        onChange={(e) => setSortBy(e.target.value as any)}
+                        className="w-full bg-black border-2 border-zinc-600 text-sm text-white pl-12 pr-8 py-3 focus:border-white outline-none font-mono uppercase transition-colors appearance-none cursor-pointer focus:shadow-[2px_2px_0px_0px_#fff]"
+                    >
+                        <option value="name">Name</option>
+                        <option value="className">Class</option>
+                        <option value="guardian">Guardian</option>
+                        <option value="guardianContact">Contact</option>
+                        <option value="address">Address</option>
+                    </select>
+                    <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500 pointer-events-none group-hover:text-white" />
+                </div>
+
+                {/* Search Input */}
+                <div className="relative w-full sm:w-64 group">
+                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500 group-hover:text-white transition-colors" />
+                    <input 
+                        type="text" 
+                        placeholder="SEARCH..." 
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="w-full bg-black border-2 border-zinc-600 text-sm text-white pl-12 pr-4 py-3 focus:border-white outline-none font-mono placeholder-zinc-600 uppercase transition-colors focus:shadow-[2px_2px_0px_0px_#fff]"
+                    />
+                </div>
             </div>
         </div>
 
-        <div className={`${s.listP} bg-zinc-900 border-b-2 border-zinc-700 min-h-[52px] flex items-center`}>
+        <div className={`${s.listP} bg-zinc-900 border-b-[3px] border-zinc-600 min-h-[52px] flex items-center`}>
             {selectedIds.size > 0 ? (
                  <div className="flex flex-col sm:flex-row sm:items-center justify-between w-full gap-4 animate-fade-in">
                     <div className="flex items-center gap-4">
-                         <span className="text-primary-500 font-bold font-mono text-sm uppercase border border-primary-900 bg-primary-900/10 px-2 py-1">{selectedIds.size} SELECTED</span>
+                         <span className="text-white font-bold font-mono text-sm uppercase border border-primary-500 bg-primary-600 px-2 py-1 animate-pulse-slow shadow-[2px_2px_0px_0px_#000]">{selectedIds.size} SELECTED</span>
                          <button 
                             onClick={() => setSelectedIds(new Set())}
                             className="text-xs text-zinc-500 hover:text-white underline decoration-zinc-600 hover:decoration-white uppercase"
@@ -919,7 +962,7 @@ export const StudentManager: React.FC<StudentManagerProps> = ({
                          <select
                             value={bulkClassId}
                             onChange={(e) => setBulkClassId(e.target.value)}
-                            className="bg-zinc-800 border-2 border-zinc-700 text-xs text-white px-2 py-2 outline-none cursor-pointer hover:border-white uppercase transition-colors"
+                            className="bg-black border-2 border-zinc-600 text-xs text-white px-2 py-2 outline-none cursor-pointer hover:border-white uppercase transition-colors"
                         >
                             <option value="">MOVE TO...</option>
                             {classes.map(g => (
@@ -941,7 +984,7 @@ export const StudentManager: React.FC<StudentManagerProps> = ({
                         type="checkbox"
                         checked={filteredStudents.length > 0 && filteredStudents.every(s => selectedIds.has(s.id))}
                         onChange={handleSelectAll}
-                        className="w-4 h-4 border-2 border-zinc-600 bg-zinc-900 checked:bg-primary-600 checked:border-primary-600 focus:ring-0 rounded-none cursor-pointer transition-colors"
+                        className="w-4 h-4 border-2 border-zinc-600 bg-black checked:bg-white checked:border-white focus:ring-0 rounded-none cursor-pointer transition-colors"
                      />
                      <label htmlFor="select-all" className="text-xs font-bold uppercase text-zinc-500 cursor-pointer hover:text-white transition-colors">
                         Select All
@@ -964,19 +1007,20 @@ export const StudentManager: React.FC<StudentManagerProps> = ({
                 <li 
                     key={student.id} 
                     className={`
-                        ${s.listP} flex items-center justify-between transition-all duration-200 group
-                        ${isSelected ? 'bg-primary-900/10 pl-8 border-l-4 border-primary-500' : 'hover:bg-zinc-800 hover:pl-10'}
+                        ${s.listP} flex items-center justify-between transition-all duration-200 group animate-slide-up opacity-0
+                        ${isSelected ? 'bg-zinc-800 border-l-4 border-primary-500' : 'hover:bg-zinc-800 hover:pl-10'}
                     `}
+                    style={{ animationDelay: `${idx * 50}ms`, animationFillMode: 'forwards' }}
                 >
                   <div className="flex items-center gap-6 flex-1">
                     <input
                       type="checkbox"
                       checked={isSelected}
                       onChange={() => toggleSelection(student.id)}
-                      className="w-4 h-4 border-2 border-zinc-600 bg-zinc-900 checked:bg-primary-600 checked:border-primary-600 rounded-none cursor-pointer transition-colors"
+                      className="w-4 h-4 border-2 border-zinc-600 bg-black checked:bg-white checked:border-white rounded-none cursor-pointer transition-colors"
                     />
                     
-                    <div className="w-12 h-12 bg-zinc-800 border-2 border-zinc-600 flex items-center justify-center flex-shrink-0 transition-colors group-hover:border-white">
+                    <div className="w-12 h-12 bg-black border-2 border-zinc-600 flex items-center justify-center flex-shrink-0 transition-colors group-hover:border-white shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] group-hover:-translate-y-0.5 group-hover:shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]">
                         {student.photo ? (
                             <img src={student.photo} alt={student.name} className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-500" />
                         ) : (
@@ -998,30 +1042,37 @@ export const StudentManager: React.FC<StudentManagerProps> = ({
                             </span>
                           )}
                           {student.className && (
-                            <span className="px-2 py-0.5 text-[10px] font-bold uppercase bg-zinc-950 text-zinc-400 px-1 border border-zinc-800 transition-colors group-hover:border-zinc-500">
+                            <span className="px-2 py-0.5 text-[10px] font-bold uppercase bg-black text-zinc-400 px-1 border border-zinc-700 transition-colors group-hover:border-white group-hover:text-white">
                                 {student.className}
                             </span>
                           )}
                       </div>
-                      {(student.guardian || student.guardianContact) && (
-                        <div className="flex items-center gap-4 text-xs font-mono text-zinc-500 mt-1">
-                            {student.guardian && (
-                                <span className="uppercase">{student.guardian}</span>
+                      <div className="flex flex-wrap items-center gap-4 text-xs font-mono text-zinc-500 mt-1">
+                            {(student.guardian) && (
+                                <span className="uppercase flex items-center gap-1" title="Guardian">
+                                    <Users className="w-3 h-3" />
+                                    {student.guardian}
+                                </span>
                             )}
-                            {student.guardianContact && (
-                                <span className="flex items-center gap-1">
+                            {(student.guardianContact) && (
+                                <span className="flex items-center gap-1" title="Contact">
                                     <Phone className="w-3 h-3" />
                                     {student.guardianContact}
                                 </span>
                             )}
-                        </div>
-                      )}
+                             {(student.address) && (
+                                <span className="flex items-center gap-1 uppercase truncate max-w-[200px]" title="Address">
+                                    <MapPin className="w-3 h-3" />
+                                    {student.address}
+                                </span>
+                            )}
+                      </div>
                     </div>
                   </div>
                   
                   <button
                     onClick={(e) => handleRemoveStudent(student.id, e)}
-                    className="p-2 text-zinc-600 hover:text-red-500 hover:bg-zinc-900 border-2 border-transparent hover:border-red-500 transition-all duration-300 opacity-0 group-hover:opacity-100 translate-x-4 group-hover:translate-x-0 focus:opacity-100 focus:translate-x-0"
+                    className="p-2 text-zinc-600 hover:text-red-500 hover:bg-black border-2 border-transparent hover:border-red-500 transition-all duration-300 opacity-0 group-hover:opacity-100 translate-x-4 group-hover:translate-x-0 focus:opacity-100 focus:translate-x-0 active:scale-95"
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>
@@ -1034,9 +1085,9 @@ export const StudentManager: React.FC<StudentManagerProps> = ({
 
       {/* Class Modal - Brutalist */}
       {viewingClass && (
-           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90 backdrop-blur-sm animate-fade-in" onClick={() => setViewingClass(null)}>
+           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90 backdrop-blur-md animate-fade-in" onClick={() => setViewingClass(null)}>
               <div 
-                  className="bg-zinc-900 w-full max-w-lg border-4 border-white shadow-brutal-lg flex flex-col max-h-[90vh] animate-scale-in" 
+                  className="bg-zinc-900 w-full max-w-lg border-4 border-white shadow-brutal-white flex flex-col max-h-[90vh] animate-slam" 
                   onClick={e => e.stopPropagation()}
               >
                   {/* ... Header and Content Implementation similar logic but brutalist styles ... */}
@@ -1048,14 +1099,14 @@ export const StudentManager: React.FC<StudentManagerProps> = ({
                                 <h3 className="text-2xl font-black text-black uppercase flex items-center gap-3">
                                     {isEditingClass ? 'EDIT CONFIG' : viewingClass}
                                 </h3>
-                                <button onClick={() => setViewingClass(null)} className="text-black border-2 border-black hover:bg-black hover:text-white p-1 transition-colors">
+                                <button onClick={() => setViewingClass(null)} className="text-black border-2 border-black hover:bg-black hover:text-white p-1 transition-colors active:scale-95">
                                     <X className="w-6 h-6" />
                                 </button>
                             </div>
 
                             <div className="p-8 overflow-y-auto space-y-8 bg-zinc-900 text-white">
                                 {isEditingClass ? (
-                                    <div className="space-y-6">
+                                    <div className="space-y-6 animate-fade-in">
                                         <div>
                                             <label className="block text-xs font-bold uppercase text-zinc-500 mb-2">Class Name</label>
                                             <input
@@ -1090,12 +1141,12 @@ export const StudentManager: React.FC<StudentManagerProps> = ({
                                 ) : (
                                     <>
                                         <div className="grid grid-cols-2 gap-4">
-                                            <div className="bg-zinc-800 border-2 border-zinc-600 p-4 text-center hover:border-white transition-colors duration-300">
-                                                 <span className="text-4xl font-black text-white block">{stats.studentCount}</span>
+                                            <div className="bg-zinc-800 border-2 border-zinc-600 p-4 text-center hover:border-white transition-colors duration-300 group">
+                                                 <span className="text-4xl font-black text-white block group-hover:scale-110 transition-transform">{stats.studentCount}</span>
                                                  <span className="text-xs font-mono uppercase text-zinc-500">Enrolled</span>
                                             </div>
-                                            <div className="bg-zinc-800 border-2 border-zinc-600 p-4 text-center hover:border-white transition-colors duration-300">
-                                                 <span className={`text-4xl font-black block ${stats.percentage > 80 ? 'text-green-500' : 'text-white'}`}>{stats.percentage}%</span>
+                                            <div className="bg-zinc-800 border-2 border-zinc-600 p-4 text-center hover:border-white transition-colors duration-300 group">
+                                                 <span className={`text-4xl font-black block group-hover:scale-110 transition-transform ${stats.percentage > 80 ? 'text-green-500' : 'text-white'}`}>{stats.percentage}%</span>
                                                  <span className="text-xs font-mono uppercase text-zinc-500">Avg. Attendance</span>
                                             </div>
                                         </div>
@@ -1108,10 +1159,10 @@ export const StudentManager: React.FC<StudentManagerProps> = ({
 
                                         <div>
                                             <h4 className="text-xs font-bold uppercase text-zinc-500 mb-3 border-b border-zinc-800 pb-1">Manifest</h4>
-                                            <div className="border-2 border-zinc-700 max-h-48 overflow-y-auto bg-zinc-800">
+                                            <div className="border-2 border-zinc-700 max-h-48 overflow-y-auto bg-black custom-scrollbar">
                                                 <ul className="divide-y divide-zinc-700">
-                                                    {stats.students.map(s => (
-                                                        <li key={s.id} className="px-4 py-2 text-sm text-zinc-300 flex justify-between items-center font-mono hover:bg-zinc-700 transition-colors">
+                                                    {stats.students.map((s, idx) => (
+                                                        <li key={s.id} className="px-4 py-2 text-sm text-zinc-300 flex justify-between items-center font-mono hover:bg-zinc-800 transition-colors animate-fade-in-up" style={{ animationDelay: idx * 30 + 'ms', animationFillMode: 'forwards' }}>
                                                             <span>{s.name}</span>
                                                             {s.birthday && <span className="text-xs text-zinc-600">{getAge(s.birthday)}Y</span>}
                                                         </li>
@@ -1145,26 +1196,26 @@ export const StudentManager: React.FC<StudentManagerProps> = ({
 
       {/* Student Detail Modal - Brutalist */}
       {viewingStudent && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90 backdrop-blur-sm animate-fade-in" onClick={() => setViewingStudent(null)}>
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90 backdrop-blur-md animate-fade-in" onClick={() => setViewingStudent(null)}>
               <div 
-                  className="bg-zinc-900 w-full max-w-2xl border-4 border-white shadow-brutal-lg flex flex-col max-h-[90vh] animate-scale-in" 
+                  className="bg-zinc-900 w-full max-w-2xl border-4 border-white shadow-brutal-white flex flex-col max-h-[90vh] animate-slam" 
                   onClick={e => e.stopPropagation()}
               >
                   <div className="px-6 py-6 border-b-4 border-white bg-white flex justify-between items-center">
                       <h3 className="text-xl font-black text-black uppercase">
                           {isEditingDetails ? 'EDIT RECORD' : 'PERSONNEL FILE'}
                       </h3>
-                      <button onClick={() => setViewingStudent(null)} className="text-black border-2 border-black hover:bg-black hover:text-white p-1 transition-colors">
+                      <button onClick={() => setViewingStudent(null)} className="text-black border-2 border-black hover:bg-black hover:text-white p-1 transition-colors active:scale-95">
                           <X className="w-6 h-6" />
                       </button>
                   </div>
                   
                   <div className="p-8 overflow-y-auto bg-zinc-900 custom-scrollbar">
                      {isEditingDetails && editFormData ? (
-                        <div className="space-y-6">
+                        <div className="space-y-6 animate-fade-in">
                             <div className="flex justify-center">
                                 <div 
-                                    className="w-32 h-32 bg-zinc-800 border-2 border-dashed border-zinc-600 flex items-center justify-center cursor-pointer hover:border-primary-500 relative group transition-colors hover:scale-105"
+                                    className="w-32 h-32 bg-black border-[3px] border-dashed border-zinc-600 flex items-center justify-center cursor-pointer hover:border-white relative group transition-colors hover:scale-105 active:scale-95"
                                     onClick={() => editFileInputRef.current?.click()}
                                 >
                                     {editFormData.photo ? (
@@ -1193,14 +1244,14 @@ export const StudentManager: React.FC<StudentManagerProps> = ({
                             <textarea rows={3} value={editFormData.notes || ''} onChange={(e) => setEditFormData({...editFormData, notes: e.target.value})} className={InputStyle} placeholder="NOTES" />
                         </div>
                      ) : detailedStats ? (
-                         <div className="space-y-8">
+                         <div className="space-y-8 animate-fade-in">
                             <div className="flex items-start gap-6">
-                                <div className="w-24 h-24 bg-zinc-800 border-2 border-zinc-700 shadow-brutal flex-shrink-0">
+                                <div className="w-24 h-24 bg-black border-2 border-zinc-700 shadow-brutal flex-shrink-0 group hover:scale-105 transition-transform">
                                     {viewingStudent.photo ? (
-                                        <img src={viewingStudent.photo} alt={viewingStudent.name} className="w-full h-full object-cover grayscale" />
+                                        <img src={viewingStudent.photo} alt={viewingStudent.name} className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-300" />
                                     ) : (
-                                        <div className="w-full h-full flex items-center justify-center bg-zinc-800">
-                                            <User className="w-8 h-8 text-zinc-600" />
+                                        <div className="w-full h-full flex items-center justify-center bg-black">
+                                            <User className="w-8 h-8 text-zinc-600 group-hover:text-white transition-colors" />
                                         </div>
                                     )}
                                 </div>
@@ -1211,7 +1262,7 @@ export const StudentManager: React.FC<StudentManagerProps> = ({
                                                 {viewingStudent.name}
                                             </h2>
                                             <div className="flex flex-wrap items-center gap-2 mt-2">
-                                                <span className="px-2 py-1 text-xs font-bold uppercase bg-primary-600 text-white border border-primary-900">
+                                                <span className="px-2 py-1 text-xs font-bold uppercase bg-black text-white border border-zinc-500">
                                                     {viewingStudent.className || 'UNASSIGNED'}
                                                 </span>
                                                 {viewingStudent.birthday && (
@@ -1237,29 +1288,29 @@ export const StudentManager: React.FC<StudentManagerProps> = ({
 
                             {/* Report Card Grid */}
                             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                                <div className="bg-zinc-800 border-2 border-zinc-700 p-3 flex flex-col items-center justify-center hover:border-white transition-colors">
-                                    <span className={`text-2xl font-black ${detailedStats.attendancePct >= 80 ? 'text-green-500' : detailedStats.attendancePct >= 50 ? 'text-yellow-500' : 'text-red-500'}`}>
+                                <div className="bg-zinc-800 border-2 border-zinc-700 p-3 flex flex-col items-center justify-center hover:border-white transition-colors group">
+                                    <span className={`text-2xl font-black group-hover:scale-110 transition-transform ${detailedStats.attendancePct >= 80 ? 'text-green-500' : detailedStats.attendancePct >= 50 ? 'text-yellow-500' : 'text-red-500'}`}>
                                         {detailedStats.attendancePct}%
                                     </span>
                                     <span className="text-[10px] font-mono uppercase text-zinc-500">Attendance</span>
                                 </div>
-                                <div className="bg-zinc-800 border-2 border-zinc-700 p-3 flex flex-col items-center justify-center hover:border-white transition-colors">
-                                    <span className="text-2xl font-black text-white">{detailedStats.total}</span>
+                                <div className="bg-zinc-800 border-2 border-zinc-700 p-3 flex flex-col items-center justify-center hover:border-white transition-colors group">
+                                    <span className="text-2xl font-black text-white group-hover:scale-110 transition-transform">{detailedStats.total}</span>
                                     <span className="text-[10px] font-mono uppercase text-zinc-500">Sessions</span>
                                 </div>
-                                <div className="bg-zinc-800 border-2 border-zinc-700 p-3 flex flex-col items-center justify-center hover:border-white transition-colors">
-                                    <span className="text-2xl font-black text-purple-500">{detailedStats.fluent}</span>
-                                    <span className="text-[10px] font-mono uppercase text-zinc-500">Fluent Verses</span>
+                                <div className="bg-zinc-800 border-2 border-zinc-700 p-3 flex flex-col items-center justify-center hover:border-white transition-colors group">
+                                    <span className="text-2xl font-black text-purple-500 group-hover:scale-110 transition-transform">{detailedStats.fluent}</span>
+                                    <span className="text-[10px] font-mono uppercase text-zinc-500">Completed</span>
                                 </div>
-                                <div className="bg-zinc-800 border-2 border-zinc-700 p-3 flex flex-col items-center justify-center hover:border-white transition-colors">
-                                    <span className="text-2xl font-black text-blue-500">{detailedStats.attempted}</span>
-                                    <span className="text-[10px] font-mono uppercase text-zinc-500">Attempts</span>
+                                <div className="bg-zinc-800 border-2 border-zinc-700 p-3 flex flex-col items-center justify-center hover:border-white transition-colors group">
+                                    <span className="text-2xl font-black text-blue-500 group-hover:scale-110 transition-transform">{detailedStats.attempted}</span>
+                                    <span className="text-[10px] font-mono uppercase text-zinc-500">Partial</span>
                                 </div>
                             </div>
                             
                             {/* Notes Section */}
                             {viewingStudent.notes && (
-                                <div className="bg-zinc-800/50 p-4 border border-zinc-700 text-zinc-400 text-xs font-mono">
+                                <div className="bg-black/50 p-4 border border-zinc-700 text-zinc-400 text-xs font-mono">
                                     <span className="text-[10px] text-zinc-500 uppercase font-bold block mb-1">NOTES</span>
                                     {viewingStudent.notes}
                                 </div>
@@ -1271,19 +1322,19 @@ export const StudentManager: React.FC<StudentManagerProps> = ({
                                     <Calendar className="w-4 h-4" />
                                     Session History
                                 </h3>
-                                <div className="border-2 border-zinc-700 max-h-60 overflow-y-auto bg-zinc-800 custom-scrollbar">
+                                <div className="border-2 border-zinc-700 max-h-60 overflow-y-auto bg-black custom-scrollbar">
                                     {detailedStats.history.length > 0 ? (
                                         <table className="w-full text-left text-xs font-mono">
                                             <thead className="bg-zinc-900 sticky top-0 z-10">
                                                 <tr>
                                                     <th className="p-3 font-bold text-zinc-400 border-b border-zinc-700">DATE</th>
-                                                    <th className="p-3 font-bold text-zinc-400 border-b border-zinc-700">TOPIC/VERSE</th>
+                                                    <th className="p-3 font-bold text-zinc-400 border-b border-zinc-700">TOPIC/ASSIGNMENT</th>
                                                     <th className="p-3 font-bold text-zinc-400 text-right border-b border-zinc-700">STATUS</th>
                                                 </tr>
                                             </thead>
                                             <tbody className="divide-y divide-zinc-700">
-                                                {detailedStats.history.map((record) => (
-                                                    <tr key={record.id} className="hover:bg-zinc-700/50 transition-colors">
+                                                {detailedStats.history.map((record, idx) => (
+                                                    <tr key={record.id} className="hover:bg-zinc-900 transition-colors animate-fade-in-up opacity-0" style={{ animationDelay: idx * 30 + 'ms', animationFillMode: 'forwards' }}>
                                                         <td className="p-3 text-zinc-300 whitespace-nowrap">
                                                             {new Date(record.date).toLocaleDateString('en-GB', {day:'2-digit', month:'short'})}
                                                         </td>
@@ -1347,9 +1398,9 @@ export const StudentManager: React.FC<StudentManagerProps> = ({
 
       {/* Bulk Import Modal - Improved */}
       {isImportModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90 backdrop-blur-sm animate-fade-in" onClick={() => setIsImportModalOpen(false)}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90 backdrop-blur-md animate-fade-in" onClick={() => setIsImportModalOpen(false)}>
             <div 
-                className="bg-zinc-900 w-full max-w-2xl border-4 border-white shadow-brutal-lg flex flex-col max-h-[90vh] animate-scale-in" 
+                className="bg-zinc-900 w-full max-w-2xl border-4 border-white shadow-brutal-white flex flex-col max-h-[90vh] animate-slam" 
                 onClick={e => e.stopPropagation()}
             >
                 <div className="px-6 py-6 border-b-4 border-white bg-white flex justify-between items-center">
@@ -1357,14 +1408,14 @@ export const StudentManager: React.FC<StudentManagerProps> = ({
                         <FileUp className="w-6 h-6" />
                         Bulk Import
                     </h3>
-                    <button onClick={() => setIsImportModalOpen(false)} className="text-black border-2 border-black hover:bg-black hover:text-white p-1 transition-colors">
+                    <button onClick={() => setIsImportModalOpen(false)} className="text-black border-2 border-black hover:bg-black hover:text-white p-1 transition-colors active:scale-95">
                         <X className="w-6 h-6" />
                     </button>
                 </div>
 
                 <div className="p-8 overflow-y-auto bg-zinc-900 custom-scrollbar space-y-8">
                     {/* Step 1: Template */}
-                    <div className="bg-zinc-800 p-4 border-2 border-zinc-700">
+                    <div className="bg-zinc-800 p-4 border-[3px] border-zinc-600">
                         <h4 className="text-white font-bold uppercase mb-2">1. Get the Template</h4>
                         <p className="text-zinc-400 text-xs font-mono mb-4">Download the CSV template to ensure your data is formatted correctly.</p>
                         <Button size="sm" variant="secondary" onClick={downloadTemplate} className="w-full sm:w-auto">
@@ -1379,10 +1430,10 @@ export const StudentManager: React.FC<StudentManagerProps> = ({
                          
                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div 
-                                className="border-2 border-dashed border-zinc-600 hover:border-primary-500 hover:bg-zinc-800 transition-all p-6 flex flex-col items-center justify-center cursor-pointer min-h-[150px] group"
+                                className="border-[3px] border-dashed border-zinc-600 hover:border-white hover:bg-zinc-800 transition-all p-6 flex flex-col items-center justify-center cursor-pointer min-h-[150px] group"
                                 onClick={() => fileImportRef.current?.click()}
                             >
-                                <Upload className="w-8 h-8 text-zinc-500 group-hover:text-primary-500 mb-2 transition-colors" />
+                                <Upload className="w-8 h-8 text-zinc-500 group-hover:text-white mb-2 transition-colors group-hover:scale-110" />
                                 <span className="text-zinc-400 font-mono text-xs uppercase group-hover:text-white">Click to Upload CSV</span>
                                 <input 
                                     type="file" 
@@ -1395,7 +1446,7 @@ export const StudentManager: React.FC<StudentManagerProps> = ({
                             <textarea
                                 value={importText}
                                 onChange={(e) => setImportText(e.target.value)}
-                                className="w-full h-full min-h-[150px] bg-zinc-900 border-2 border-zinc-700 text-white p-3 font-mono text-xs focus:border-primary-500 outline-none resize-none placeholder-zinc-600"
+                                className="w-full h-full min-h-[150px] bg-black border-[3px] border-zinc-600 text-white p-3 font-mono text-xs focus:border-white outline-none resize-none placeholder-zinc-600 focus:shadow-[4px_4px_0px_0px_#fff] transition-all"
                                 placeholder={`Paste CSV data here...\n\nExample:\nJohn Doe,Junior,Jane Doe,555-1234`}
                             />
                          </div>
@@ -1406,11 +1457,11 @@ export const StudentManager: React.FC<StudentManagerProps> = ({
                         <div className="animate-fade-in">
                             <h4 className="text-white font-bold uppercase mb-4 flex justify-between items-center">
                                 <span>3. Preview</span>
-                                <span className="text-green-500 text-xs font-mono bg-green-900/20 px-2 py-1 border border-green-900">
+                                <span className="text-green-500 text-xs font-mono bg-green-900/20 px-2 py-1 border border-green-900 animate-pulse-slow">
                                     {parsedImportData.length} Valid Records
                                 </span>
                             </h4>
-                            <div className="border-2 border-zinc-700 max-h-48 overflow-y-auto bg-zinc-800">
+                            <div className="border-[3px] border-zinc-600 max-h-48 overflow-y-auto bg-black">
                                  <table className="w-full text-left text-xs font-mono">
                                     <thead className="bg-zinc-900 sticky top-0">
                                         <tr>
@@ -1421,7 +1472,7 @@ export const StudentManager: React.FC<StudentManagerProps> = ({
                                     </thead>
                                     <tbody className="divide-y divide-zinc-700">
                                         {parsedImportData.map((s, i) => (
-                                            <tr key={i}>
+                                            <tr key={i} className="animate-fade-in-up" style={{ animationDelay: i * 30 + 'ms', animationFillMode: 'forwards' }}>
                                                 <td className="p-2 text-white">{s.name}</td>
                                                 <td className="p-2 text-zinc-400">{s.className || '-'}</td>
                                                 <td className="p-2 text-zinc-500">
@@ -1449,15 +1500,15 @@ export const StudentManager: React.FC<StudentManagerProps> = ({
       {/* Confirmation Modal - Brutalist */}
       {confirmation.isOpen && (
         <div 
-            className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/90 backdrop-blur-sm animate-fade-in"
+            className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md animate-fade-in"
             onClick={closeConfirmation}
         >
             <div 
-                className="bg-red-900 w-full max-w-sm border-4 border-red-500 shadow-brutal p-6 animate-scale-in"
+                className="bg-red-900 w-full max-w-sm border-4 border-red-500 shadow-brutal p-6 animate-slam"
                 onClick={e => e.stopPropagation()}
             >
                 <div className="flex items-start gap-4 mb-4">
-                    <AlertTriangle className="w-8 h-8 text-white" />
+                    <AlertTriangle className="w-8 h-8 text-white animate-pulse" />
                     <div>
                         <h3 className="text-xl font-black text-white uppercase">{confirmation.title}</h3>
                         <p className="text-red-200 text-sm font-mono mt-2">{confirmation.message}</p>

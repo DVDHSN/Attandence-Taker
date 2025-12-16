@@ -93,7 +93,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ sessions, students, onEdit
     return acc + session.records.filter(r => r.status === 'present').length;
   }, 0);
 
-  // Memory Verse Stats
+  // Memory Verse Stats (now Assignment Stats)
   const verseStats = useMemo(() => {
     let totalVerses = 0;
     let fluentCount = 0;
@@ -164,6 +164,11 @@ export const Dashboard: React.FC<DashboardProps> = ({ sessions, students, onEdit
       };
   });
 
+  // Chart Key for Animation Trigger
+  const chartKey = useMemo(() => {
+    return `chart-${chartView}-${selectedMonths ? selectedMonths.join('-') : 'all'}-${chartData.length}`;
+  }, [chartView, selectedMonths, chartData.length]);
+
   // Birthday Logic
   const [selectedBirthdayMonth, setSelectedBirthdayMonth] = useState<number>(new Date().getMonth());
   const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
@@ -215,9 +220,10 @@ export const Dashboard: React.FC<DashboardProps> = ({ sessions, students, onEdit
       }
   };
 
-  const StatCard = ({ label, value, icon: Icon, colorClass, gradient }: any) => (
+  const StatCard = ({ label, value, icon: Icon, colorClass, gradient, delay }: any) => (
       <div 
-        className={`relative overflow-hidden bg-zinc-800 border-2 border-zinc-700 shadow-brutal flex items-center justify-between group hover:border-white transition-all duration-200 ease-out hover:-translate-y-1 hover:shadow-brutal-lg cursor-default ${s.cardH} ${s.p}`}
+        className={`relative overflow-hidden bg-zinc-800 border-2 border-zinc-700 shadow-brutal flex items-center justify-between group hover:border-white transition-all duration-300 ease-out hover:-translate-y-1 hover:shadow-brutal-lg cursor-default ${s.cardH} ${s.p} animate-slide-up opacity-0`}
+        style={{ animationDelay: delay, animationFillMode: 'forwards' }}
       >
           {/* Subtle gradient background */}
           <div className={`absolute top-0 right-0 w-24 h-full bg-gradient-to-l ${gradient} opacity-10 transform skew-x-12 translate-x-4 group-hover:translate-x-0 transition-transform duration-500`} />
@@ -233,7 +239,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ sessions, students, onEdit
   );
 
   return (
-    <div className={`${s.space} flex flex-col md:h-[calc(100vh-160px)] animate-fade-in`}>
+    <div className={`${s.space} flex flex-col md:h-[calc(100vh-160px)]`}>
       
       {/* Top Stats Row */}
       <div className={`flex-none grid grid-cols-2 lg:grid-cols-4 ${s.gridGap}`}>
@@ -243,6 +249,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ sessions, students, onEdit
             icon={Users} 
             colorClass="text-blue-500" 
             gradient="from-blue-500 to-transparent"
+            delay="0ms"
         />
         <StatCard 
             label="Sessions Logged" 
@@ -250,6 +257,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ sessions, students, onEdit
             icon={CalendarDays} 
             colorClass="text-purple-500" 
             gradient="from-purple-500 to-transparent"
+            delay="50ms"
         />
         <StatCard 
             label="Avg. Attendance" 
@@ -257,13 +265,15 @@ export const Dashboard: React.FC<DashboardProps> = ({ sessions, students, onEdit
             icon={Activity} 
             colorClass="text-green-500" 
             gradient="from-green-500 to-transparent"
+            delay="100ms"
         />
         <StatCard 
-            label="Verse Fluency" 
+            label="Assignment Avg" 
             value={`${verseStats.rate}%`} 
             icon={Sparkles} 
             colorClass="text-yellow-500" 
             gradient="from-yellow-500 to-transparent"
+            delay="150ms"
         />
       </div>
 
@@ -271,7 +281,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ sessions, students, onEdit
       <div className={`flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-3 ${s.gridGap} pb-1`}>
           
           {/* Left Col: Trends Chart */}
-          <div className="lg:col-span-2 bg-zinc-800 border-2 border-zinc-700 shadow-brutal flex flex-col hover:border-white transition-all duration-300 hover:shadow-brutal-lg relative z-20 overflow-hidden h-96 lg:h-auto group">
+          <div className="lg:col-span-2 bg-zinc-800 border-2 border-zinc-700 shadow-brutal flex flex-col hover:border-white transition-all duration-300 hover:shadow-brutal-lg relative z-20 overflow-hidden h-96 lg:h-auto group animate-slide-up opacity-0" style={{ animationDelay: '200ms', animationFillMode: 'forwards' }}>
             
             {/* Chart Header */}
             <div className={`flex-none ${s.headerP} border-b-2 border-zinc-700 flex justify-between items-center gap-4 bg-zinc-800/50 backdrop-blur-sm`}>
@@ -319,7 +329,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ sessions, students, onEdit
                         </button>
 
                         {isFilterOpen && (
-                            <div className="absolute right-0 top-full mt-2 w-48 bg-zinc-900 border-4 border-primary-500 shadow-brutal z-50 animate-scale-in origin-top-right">
+                            <div className="absolute right-0 top-full mt-2 w-48 bg-zinc-900 border-4 border-primary-500 shadow-brutal z-50 animate-slam origin-top-right">
                                 <div className="p-2 border-b-2 border-zinc-800 flex gap-2">
                                     <button 
                                         onClick={() => setSelectedMonths(null)}
@@ -362,7 +372,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ sessions, students, onEdit
             <div className={`flex-1 w-full min-h-0 ${s.p}`}>
               {sessions.length > 0 ? (
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={chartData} barSize={density === 'spacious' ? 40 : 20}>
+                  <BarChart key={chartKey} data={chartData} barSize={density === 'spacious' ? 40 : 20}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#27272a" vertical={false} />
                     <XAxis 
                       dataKey="date" 
@@ -381,14 +391,14 @@ export const Dashboard: React.FC<DashboardProps> = ({ sessions, students, onEdit
                       dx={-10}
                       fontFamily="monospace"
                     />
-                    <Tooltip content={<CustomTooltip />} cursor={{fill: '#27272a'}} />
+                    <Tooltip content={<CustomTooltip />} cursor={{fill: '#27272a', opacity: 0.5}} />
                     <Legend verticalAlign="top" height={36} iconType="square" wrapperStyle={{fontSize: '10px'}}/>
                     
                     {(chartView === 'present' || chartView === 'both') && (
-                        <Bar dataKey="present" name="Present" fill="#10b981" radius={[2, 2, 0, 0]} animationDuration={1000} />
+                        <Bar dataKey="present" name="Present" fill="#10b981" radius={[2, 2, 0, 0]} animationDuration={1000} animationEasing="ease-out" />
                     )}
                     {(chartView === 'absent' || chartView === 'both') && (
-                        <Bar dataKey="absent" name="Absent" fill="#ef4444" radius={[2, 2, 0, 0]} animationDuration={1000} />
+                        <Bar dataKey="absent" name="Absent" fill="#ef4444" radius={[2, 2, 0, 0]} animationDuration={1000} animationEasing="ease-out" />
                     )}
                   </BarChart>
                 </ResponsiveContainer>
@@ -405,7 +415,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ sessions, students, onEdit
           <div className={`flex flex-col ${s.gap} h-full min-h-0`}>
              
              {/* Birthday Card */}
-             <div className={`flex-none bg-zinc-800 border-2 border-zinc-700 shadow-brutal ${s.p} flex flex-col hover:border-white transition-all duration-300 max-h-[40%] group hover:-translate-y-1 hover:shadow-brutal-lg`}>
+             <div className={`flex-none bg-zinc-800 border-2 border-zinc-700 shadow-brutal ${s.p} flex flex-col hover:border-white transition-all duration-300 max-h-[40%] group hover:-translate-y-1 hover:shadow-brutal-lg animate-slide-up opacity-0`} style={{ animationDelay: '250ms', animationFillMode: 'forwards' }}>
                 <div className="flex-none flex items-center justify-between mb-3 border-b border-zinc-700 pb-2">
                      <h3 className="text-sm font-black text-white uppercase flex items-center gap-2 group-hover:text-primary-500 transition-colors">
                         <Cake className="w-4 h-4 text-primary-500 group-hover:animate-bounce" />
@@ -428,9 +438,10 @@ export const Dashboard: React.FC<DashboardProps> = ({ sessions, students, onEdit
                 <div className="flex-1 overflow-y-auto custom-scrollbar pr-1 min-h-0">
                     {birthdays.length > 0 ? (
                         <ul className="space-y-2">
-                            {birthdays.map((student) => (
+                            {birthdays.map((student, idx) => (
                                 <li key={student.id} 
-                                    className="flex items-center gap-3 bg-zinc-900 p-2 border border-zinc-800 hover:border-primary-500 transition-all duration-200 hover:translate-x-1 group/item cursor-default"
+                                    className="flex items-center gap-3 bg-zinc-900 p-2 border border-zinc-800 hover:border-primary-500 transition-all duration-200 hover:translate-x-1 group/item cursor-default animate-fade-in-up opacity-0"
+                                    style={{ animationDelay: `${idx * 50}ms`, animationFillMode: 'forwards' }}
                                 >
                                     <div className="w-8 h-8 bg-zinc-800 flex items-center justify-center flex-shrink-0 border border-zinc-700 group-hover/item:border-primary-500 transition-colors">
                                          {student.photo ? (
@@ -458,7 +469,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ sessions, students, onEdit
              </div>
 
              {/* History List */}
-             <div className="flex-1 bg-zinc-800 border-2 border-zinc-700 shadow-brutal flex flex-col hover:border-white transition-all duration-300 min-h-0 group hover:-translate-y-1 hover:shadow-brutal-lg">
+             <div className="flex-1 bg-zinc-800 border-2 border-zinc-700 shadow-brutal flex flex-col hover:border-white transition-all duration-300 min-h-0 group hover:-translate-y-1 hover:shadow-brutal-lg animate-slide-up opacity-0" style={{ animationDelay: '300ms', animationFillMode: 'forwards' }}>
                 <div className={`flex-none ${s.headerP} border-b border-zinc-700 flex justify-between items-center bg-zinc-800`}>
                   <h3 className="text-sm font-black text-white uppercase group-hover:text-primary-500 transition-colors">History</h3>
                   <Button size="sm" variant="outline" onClick={() => exportToCSV(sessions, students)} className="px-2 py-1 hover:bg-white hover:text-black">
@@ -467,18 +478,19 @@ export const Dashboard: React.FC<DashboardProps> = ({ sessions, students, onEdit
                 </div>
                 <div className="flex-1 overflow-y-auto custom-scrollbar">
                   <ul className="divide-y divide-zinc-700">
-                    {sessions.slice().reverse().map((session) => {
+                    {sessions.slice().reverse().map((session, idx) => {
                       const presentCount = session.records.filter(r => r.status === 'present').length;
                       const sessionTotal = session.records.length;
                       
                       const dateObj = new Date(session.date);
                       return (
                         <li key={session.id} 
-                            className={`${density === 'compact' ? 'p-2' : 'p-3'} hover:bg-zinc-700/50 transition-all duration-200 group/item cursor-pointer`}
+                            className={`${density === 'compact' ? 'p-2' : 'p-3'} hover:bg-zinc-700/50 transition-all duration-200 group/item cursor-pointer animate-slide-up opacity-0`}
+                            style={{ animationDelay: `${idx * 50}ms`, animationFillMode: 'forwards' }}
                         >
                           <div className="flex justify-between items-start mb-2">
                             <div className="flex items-center gap-3">
-                              <div className="w-10 h-10 bg-zinc-900 flex flex-col items-center justify-center border border-zinc-600 transition-colors group-hover/item:border-primary-500 group-hover/item:bg-zinc-800">
+                              <div className="w-10 h-10 bg-zinc-900 flex flex-col items-center justify-center border border-zinc-600 transition-colors group-hover/item:border-primary-500 group-hover/item:bg-zinc-800 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] group-hover/item:shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] group-hover/item:-translate-y-0.5">
                                   <span className="text-[8px] font-bold text-zinc-400 uppercase">{dateObj.toLocaleDateString('en-US', {month: 'short'})}</span>
                                   <span className="text-sm font-black text-white">{dateObj.getDate()}</span>
                               </div>
@@ -534,7 +546,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ sessions, students, onEdit
             onClick={() => setSessionToEdit(null)}
         >
             <div 
-                className="bg-zinc-900 w-full max-w-sm border-4 border-primary-600 shadow-brutal p-6 animate-scale-in"
+                className="bg-zinc-900 w-full max-w-sm border-4 border-primary-600 shadow-brutal p-6 animate-slam"
                 onClick={e => e.stopPropagation()}
             >
                <h3 className="text-xl font-black text-white uppercase mb-2">Edit Record?</h3>

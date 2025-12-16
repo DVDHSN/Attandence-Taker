@@ -197,15 +197,15 @@ const App: React.FC = () => {
         if (view === 'attendance') setEditingSession(undefined);
         setIsSidebarOpen(false);
       }}
-      className={`w-full flex items-center gap-3 px-5 py-4 transition-all duration-300 group border-b-2 border-transparent hover:border-primary-500 rounded-none relative overflow-visible outline-none focus:bg-zinc-800 focus:text-white ${
+      className={`w-full flex items-center gap-3 px-5 py-4 transition-all duration-300 group border-b-[3px] border-transparent hover:border-white rounded-none relative overflow-visible outline-none focus:bg-white focus:text-black ${
         currentView === view 
-          ? 'bg-zinc-800 text-primary-400 font-bold border-l-4 border-l-primary-500 border-b-zinc-800 pl-8 shadow-[-4px_4px_0px_0px_rgba(0,0,0,1)] -translate-y-1 z-10' 
-          : 'text-gray-400 hover:bg-zinc-800 hover:text-white font-medium hover:pl-8 hover:-translate-y-1 hover:shadow-[-4px_4px_0px_0px_rgba(0,0,0,1)] hover:z-10'
+          ? 'bg-white text-black font-black border-l-4 border-l-primary-500 border-b-white pl-8 shadow-[-4px_4px_0px_0px_#ef4444] -translate-y-1 z-10' 
+          : 'text-zinc-400 hover:bg-black hover:text-white font-bold hover:pl-8 hover:-translate-y-1 hover:shadow-[-4px_4px_0px_0px_#fff] hover:z-10'
       }`}
     >
-      <Icon className={`w-5 h-5 transition-transform duration-200 ${currentView === view ? 'text-primary-500 scale-110' : 'text-zinc-500 group-hover:text-zinc-300 group-hover:scale-110'}`} />
+      <Icon className={`w-5 h-5 transition-transform duration-200 ${currentView === view ? 'text-primary-500 scale-110' : 'text-zinc-500 group-hover:text-white group-hover:scale-110'}`} />
       <span className="uppercase tracking-widest text-sm relative z-10">{label}</span>
-      {currentView === view && <ChevronRight className="w-4 h-4 ml-auto text-primary-500" />}
+      {currentView === view && <ChevronRight className="w-4 h-4 ml-auto text-primary-500 stroke-[3]" />}
     </button>
   );
 
@@ -215,7 +215,7 @@ const App: React.FC = () => {
       {/* Mobile Header - Brutalist */}
       <div className="md:hidden flex items-center justify-between p-4 bg-zinc-900 border-b-4 border-zinc-800 sticky top-0 z-30 shadow-lg">
         <div className="flex items-center gap-3">
-            <div className="w-8 h-8 bg-primary-600 border-2 border-white flex items-center justify-center text-white shadow-brutal-hover transition-transform active:scale-95">
+            <div className="w-8 h-8 bg-primary-600 border-2 border-white flex items-center justify-center text-white shadow-brutal-hover transition-transform active:scale-95 animate-squeeze">
                 <BookOpenCheck className="w-5 h-5" />
             </div>
             <div>
@@ -234,14 +234,14 @@ const App: React.FC = () => {
 
       {/* Sidebar Navigation - Brutalist */}
       <aside className={`
-        fixed inset-y-0 left-0 z-20 w-80 bg-zinc-900 border-r-4 border-zinc-800 transform transition-transform duration-300 ease-out-expo
+        fixed inset-y-0 left-0 z-20 w-80 bg-zinc-900 border-r-[3px] border-zinc-700 transform transition-transform duration-300 ease-out-expo
         md:relative md:translate-x-0 flex flex-col shadow-2xl md:shadow-[4px_0_0_0_black]
         ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}
       `}>
-        <div className="p-8 pb-8 border-b-4 border-zinc-800 bg-zinc-900">
+        <div className="p-8 pb-8 border-b-[3px] border-zinc-700 bg-zinc-900">
           <div className="flex items-center gap-4 group cursor-default">
-            <div className="w-12 h-12 bg-primary-600 border-2 border-white shadow-brutal flex items-center justify-center text-white transition-all duration-200 group-hover:shadow-brutal-lg group-hover:-translate-y-1 group-hover:rotate-6 group-hover:bg-primary-500">
-                <BookOpenCheck className="w-7 h-7" />
+            <div className="w-12 h-12 bg-primary-600 border-[3px] border-white shadow-brutal flex items-center justify-center text-white transition-all duration-200 group-hover:shadow-brutal-lg group-hover:-translate-y-1 group-hover:rotate-6 group-hover:bg-primary-500">
+                <BookOpenCheck className="w-7 h-7 stroke-[2.5]" />
             </div>
             <div>
                 <h1 className="text-2xl font-black text-white tracking-tighter leading-none uppercase glitch-text">
@@ -251,17 +251,17 @@ const App: React.FC = () => {
           </div>
         </div>
 
-        <nav className="flex-1 overflow-y-auto py-4 space-y-1 overflow-x-hidden p-2 custom-scrollbar">
+        <nav className="flex-1 overflow-y-auto py-4 space-y-2 overflow-x-hidden p-4 custom-scrollbar">
           <NavItem view="dashboard" icon={LayoutDashboard} label="Dashboard" />
           <NavItem view="analytics" icon={PieChart} label="Analytics" />
           <NavItem view="attendance" icon={ClipboardCheck} label="Attendance" />
           <NavItem view="students" icon={Users} label="Students" />
-          <div className="my-4 border-t-4 border-zinc-800 mx-4"></div>
+          <div className="my-4 border-t-[3px] border-zinc-700 mx-2"></div>
           <NavItem view="settings" icon={SettingsIcon} label="Settings" />
         </nav>
 
-        <div className="p-4 border-t-4 border-zinc-800 bg-zinc-950/50">
-            <p className="text-xs font-mono text-zinc-600 text-center hover:text-primary-500 transition-colors cursor-default">V1.0.1 // BRUTAL_EDITION</p>
+        <div className="p-4 border-t-[3px] border-zinc-700 bg-black">
+            <p className="text-xs font-mono text-zinc-600 text-center hover:text-primary-500 transition-colors cursor-default">V2.0.0 // NEO_BRUTAL_EDITION</p>
         </div>
       </aside>
 
@@ -269,7 +269,7 @@ const App: React.FC = () => {
       <main className="flex-1 overflow-y-auto bg-zinc-900 relative custom-scrollbar">
         <div className={`mx-auto w-full transition-all duration-300 ease-in-out ${density === 'compact' ? 'p-2 md:p-4 pb-20' : density === 'spacious' ? 'p-8 md:p-16 pb-32' : 'p-4 md:p-12 pb-24'}`}>
           
-          <header className={`border-b-4 border-zinc-800 ${density === 'compact' ? 'pb-4 mb-6' : density === 'spacious' ? 'pb-10 mb-16' : 'pb-8 mb-12'} animate-slide-up`}>
+          <header className={`border-b-[3px] border-zinc-700 ${density === 'compact' ? 'pb-4 mb-6' : density === 'spacious' ? 'pb-10 mb-16' : 'pb-8 mb-12'} animate-slide-up`}>
             <h2 key={currentView} className={`${density === 'compact' ? 'text-3xl' : density === 'spacious' ? 'text-6xl' : 'text-5xl'} font-black text-white mb-4 tracking-tighter uppercase transition-all duration-200 hover:text-primary-500 cursor-default glitch-text`}>
               {currentView === 'dashboard' && 'Status Report'}
               {currentView === 'analytics' && 'Intelligence'}
@@ -277,8 +277,8 @@ const App: React.FC = () => {
               {currentView === 'students' && 'Roster'}
               {currentView === 'settings' && 'System Config'}
             </h2>
-            <div className="inline-block bg-zinc-800 px-3 py-1 border-l-4 border-primary-500 transition-all duration-200 hover:pl-6 hover:bg-zinc-700 hover:border-white shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
-                <p className="text-sm text-zinc-400 font-mono uppercase tracking-wide">
+            <div className="inline-block bg-black px-4 py-2 border-l-4 border-primary-500 transition-all duration-200 hover:pl-8 hover:bg-zinc-900 hover:border-white shadow-[4px_4px_0px_0px_#27272a]">
+                <p className="text-sm text-zinc-400 font-mono uppercase tracking-wide font-bold">
                     {currentView === 'dashboard' && '// SYSTEM OVERVIEW'}
                     {currentView === 'analytics' && '// DATA ANALYSIS & INSIGHTS'}
                     {currentView === 'attendance' && (editingSession ? '// MODIFYING HISTORICAL DATA' : '// MARKING ACTIVE ATTENDANCE')}
@@ -288,7 +288,7 @@ const App: React.FC = () => {
             </div>
           </header>
 
-          <div key={currentView} className="animate-fade-in">
+          <div key={currentView} className="animate-fade-in-up">
             {currentView === 'dashboard' && (
               <Dashboard 
                 sessions={sessions} 
@@ -348,10 +348,10 @@ const App: React.FC = () => {
       {/* Floating Tutorial Trigger - Bottom Right */}
       <button 
         onClick={() => setIsTutorialOpen(true)}
-        className="fixed bottom-6 right-6 z-50 bg-primary-600 text-white border-2 border-white w-14 h-14 flex items-center justify-center shadow-brutal hover:-translate-y-1 hover:-translate-x-1 hover:shadow-brutal-lg hover:bg-white hover:text-black hover:border-black transition-all duration-200 group active:scale-95 active:shadow-none focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-black"
+        className="fixed bottom-6 right-6 z-50 bg-primary-600 text-white border-2 border-white w-14 h-14 flex items-center justify-center shadow-brutal hover:-translate-y-1 hover:-translate-x-1 hover:shadow-brutal-white hover:bg-white hover:text-black hover:border-black transition-all duration-200 group active:scale-95 active:shadow-none focus:outline-none focus:ring-4 focus:ring-white focus:ring-offset-0 animate-pop"
         title="Open Manual"
       >
-        <HelpCircle className="w-8 h-8 group-hover:scale-110 transition-transform duration-200" />
+        <HelpCircle className="w-8 h-8 group-hover:scale-110 transition-transform duration-200 stroke-[2.5]" />
       </button>
 
       {/* Tutorial Overlay */}
@@ -363,9 +363,9 @@ const App: React.FC = () => {
       
       {/* Import Confirmation Modal - Brutalist Style */}
       {pendingImport && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 backdrop-blur-sm animate-fade-in p-4">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 backdrop-blur-md animate-fade-in p-4">
             <div 
-                className="bg-zinc-900 border-4 border-blue-500 shadow-[8px_8px_0px_0px_#3b82f6] p-8 max-w-lg w-full relative animate-scale-in"
+                className="bg-zinc-900 border-4 border-blue-500 shadow-[8px_8px_0px_0px_#3b82f6] p-8 max-w-lg w-full relative animate-slam"
                 onClick={(e) => e.stopPropagation()}
             >
                 <div className="absolute top-0 right-0 p-4 opacity-20 pointer-events-none">
@@ -383,17 +383,17 @@ const App: React.FC = () => {
                     </p>
                     
                     <div className="grid grid-cols-2 gap-4">
-                        <div className="bg-zinc-800 p-4 border-l-4 border-blue-500">
+                        <div className="bg-black p-4 border-l-4 border-blue-500 animate-slide-up" style={{ animationDelay: '100ms', animationFillMode: 'forwards' }}>
                             <p className="text-zinc-500 text-[10px] font-mono uppercase mb-1">Student Records</p>
                             <p className="text-3xl font-black text-white">{pendingImport.students?.length || 0}</p>
                         </div>
-                         <div className="bg-zinc-800 p-4 border-l-4 border-purple-500">
+                         <div className="bg-black p-4 border-l-4 border-purple-500 animate-slide-up" style={{ animationDelay: '200ms', animationFillMode: 'forwards' }}>
                             <p className="text-zinc-500 text-[10px] font-mono uppercase mb-1">Session Logs</p>
                             <p className="text-3xl font-black text-white">{pendingImport.sessions?.length || 0}</p>
                         </div>
                     </div>
 
-                    <div className="bg-blue-900/20 border border-blue-900/50 p-4 mt-4">
+                    <div className="bg-blue-900/20 border-2 border-blue-900/50 p-4 mt-4 animate-fade-in" style={{ animationDelay: '300ms' }}>
                          <p className="text-blue-200 font-mono text-xs leading-relaxed">
                             <span className="font-bold text-blue-400">MERGE PROTOCOL:</span> Existing IDs will be updated. New records will be appended. This action is safe but cannot be undone automatically.
                         </p>
@@ -401,7 +401,7 @@ const App: React.FC = () => {
                 </div>
                 
                 <div className="flex gap-4 relative z-10">
-                    <Button variant="ghost" onClick={() => setPendingImport(null)} className="flex-1">DISCARD</Button>
+                    <Button variant="ghost" onClick={() => setPendingImport(null)} className="flex-1 border-2 border-zinc-700">DISCARD</Button>
                     <Button variant="primary" onClick={executeImportMerge} className="flex-1 bg-blue-600 hover:bg-blue-500 border-blue-900 shadow-[4px_4px_0px_0px_#1e3a8a] hover:shadow-[6px_6px_0px_0px_#1e3a8a]">
                         INITIATE MERGE
                     </Button>
@@ -413,7 +413,7 @@ const App: React.FC = () => {
       {/* Overlay for mobile sidebar */}
       {isSidebarOpen && (
         <div 
-          className="fixed inset-0 bg-black/80 z-10 md:hidden animate-fade-in backdrop-blur-sm"
+          className="fixed inset-0 bg-black/80 backdrop-blur-sm z-10 md:hidden animate-fade-in"
           onClick={() => setIsSidebarOpen(false)}
         />
       )}

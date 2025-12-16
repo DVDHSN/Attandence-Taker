@@ -35,11 +35,11 @@ const tutorialContent = {
       },
       {
         title: 'DEEP DIVE',
-        text: 'Analyze "Verse Retention" trends to see how memory verse fluency is improving over time.'
+        text: 'Analyze "Assignment Trends" to see how completion rates are improving over time.'
       },
       {
         title: 'LEADERBOARDS',
-        text: 'Identify top performers in Attendance and Memory Verses. Great for awarding prizes or recognition.'
+        text: 'Identify top performers in Attendance and Assignments. Great for awarding prizes or recognition.'
       }
     ]
   },

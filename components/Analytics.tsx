@@ -29,7 +29,7 @@ const COLORS = {
 const CustomTooltip = ({ active, payload, label }: any) => {
   if (active && payload && payload.length) {
     return (
-      <div className="bg-zinc-900 border-2 border-white p-3 shadow-brutal min-w-[150px] z-50 animate-scale-in">
+      <div className="bg-zinc-900 border-2 border-white p-3 shadow-brutal min-w-[150px] z-50 animate-slam">
         <p className="text-white font-mono text-xs font-bold mb-2 uppercase border-b border-zinc-700 pb-1">{label}</p>
         <div className="space-y-1">
             {payload.map((entry: any) => (
@@ -50,6 +50,7 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 
 export const Analytics: React.FC<AnalyticsProps> = ({ sessions, students, classes, density }) => {
   const [selectedClass, setSelectedClass] = useState<string>('ALL');
+  const [assignmentSort, setAssignmentSort] = useState<'score' | 'completed' | 'partial'>('score');
 
   const s = useMemo(() => {
     switch (density) {
@@ -153,9 +154,9 @@ export const Analytics: React.FC<AnalyticsProps> = ({ sessions, students, classe
             date: new Date(session.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' }),
             attendance: attendanceRate,
             successRate: sessionSuccessRate,
-            Fluent: fluent,
-            Attempted: tried,
-            Failed: failed
+            Complete: fluent,
+            Partial: tried,
+            Missing: failed
         };
     });
   }, [relevantSessions, filteredStudents, filteredStudentIds]);
@@ -191,15 +192,24 @@ export const Analytics: React.FC<AnalyticsProps> = ({ sessions, students, classe
     });
   }, [filteredStudents, relevantSessions]);
 
-  const topAttendance = [...studentPerformance]
+  const topAttendance = useMemo(() => {
+    return [...studentPerformance]
     .filter(s => s.totalSessions > 0)
     .sort((a, b) => b.attendanceRate - a.attendanceRate || b.present - a.present)
     .slice(0, 5);
+  }, [studentPerformance]);
 
-  const topVerses = [...studentPerformance]
+  const topVerses = useMemo(() => {
+    return [...studentPerformance]
     .filter(s => s.fluent > 0 || s.attempted > 0)
-    .sort((a, b) => b.verseScore - a.verseScore || b.fluent - a.fluent)
+    .sort((a, b) => {
+        if (assignmentSort === 'completed') return b.fluent - a.fluent || b.verseScore - a.verseScore;
+        if (assignmentSort === 'partial') return b.attempted - a.attempted || b.verseScore - a.verseScore;
+        // Default 'score'
+        return b.verseScore - a.verseScore || b.fluent - a.fluent;
+    })
     .slice(0, 5);
+  }, [studentPerformance, assignmentSort]);
 
   // 4. Class Comparison
   const classComparisonData = useMemo(() => {
@@ -245,15 +255,17 @@ export const Analytics: React.FC<AnalyticsProps> = ({ sessions, students, classe
         });
     });
     return [
-        { name: 'Fluent', value: f, color: COLORS.success },
-        { name: 'Attempted', value: a, color: COLORS.warning },
-        { name: 'Failed', value: x, color: COLORS.primary }
+        { name: 'Complete', value: f, color: COLORS.success },
+        { name: 'Partial', value: a, color: COLORS.warning },
+        { name: 'Missing', value: x, color: COLORS.primary }
     ].filter(d => d.value > 0);
   }, [relevantSessions, filteredStudentIds]);
 
+  // Chart Key for Animation Replay
+  const animationKey = `analytics-${selectedClass}`;
 
-  const StatCard = ({ label, value, sub, icon: Icon, color, gradient }: any) => (
-    <div className={`relative overflow-hidden bg-zinc-800 ${s.p} border-2 border-zinc-700 shadow-brutal flex items-start justify-between group hover:border-white transition-all duration-300 hover:-translate-y-1 hover:shadow-brutal-lg`}>
+  const StatCard = ({ label, value, sub, icon: Icon, color, gradient, delay }: any) => (
+    <div className={`relative overflow-hidden bg-zinc-800 ${s.p} border-2 border-zinc-700 shadow-brutal flex items-start justify-between group hover:border-white transition-all duration-300 hover:-translate-y-1 hover:shadow-brutal-lg animate-slide-up opacity-0`} style={{ animationDelay: delay, animationFillMode: 'forwards' }}>
         {/* Subtle gradient background */}
         <div className={`absolute top-0 right-0 w-32 h-full bg-gradient-to-l ${gradient} opacity-5 transform skew-x-12 translate-x-8 transition-opacity group-hover:opacity-10`} />
         
@@ -282,7 +294,7 @@ export const Analytics: React.FC<AnalyticsProps> = ({ sessions, students, classe
             <select
                 value={selectedClass}
                 onChange={(e) => setSelectedClass(e.target.value)}
-                className="w-full bg-zinc-900 border-2 border-zinc-600 text-white pl-4 pr-10 py-3 uppercase font-bold tracking-wide outline-none appearance-none cursor-pointer hover:border-primary-500 focus:border-primary-500 transition-colors shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
+                className="w-full bg-zinc-900 border-2 border-zinc-600 text-white pl-4 pr-10 py-3 uppercase font-bold tracking-wide outline-none appearance-none cursor-pointer hover:border-primary-500 focus:border-primary-500 transition-colors shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:shadow-none active:translate-y-[2px]"
             >
                 <option value="ALL">All Classes</option>
                 {classes.map(c => <option key={c} value={c}>{c}</option>)}
@@ -300,37 +312,41 @@ export const Analytics: React.FC<AnalyticsProps> = ({ sessions, students, classe
             icon={Users} 
             color="text-blue-500" 
             gradient="from-blue-500 to-transparent"
+            delay="0ms"
         />
         <StatCard 
-            label="Verse Success" 
+            label="Assgn Success" 
             value={`${overviewStats.successRate}%`} 
-            sub={`Based on ${overviewStats.totalVersesRecorded} recitations`}
+            sub={`Based on ${overviewStats.totalVersesRecorded} records`}
             icon={Target} 
             color="text-green-500" 
             gradient="from-green-500 to-transparent"
+            delay="50ms"
         />
         <StatCard 
-            label="Fluent Verses" 
+            label="Completed Assgns" 
             value={overviewStats.totalVersesFluent} 
-            sub="Perfect recitations"
+            sub="Marked as Complete"
             icon={BookOpenCheck} 
             color="text-purple-500" 
             gradient="from-purple-500 to-transparent"
+            delay="100ms"
         />
         <StatCard 
             label="Total Activity" 
             value={overviewStats.totalVersesRecorded} 
-            sub="Verses attempted/failed"
+            sub="Assignments partial/missing"
             icon={Activity} 
             color="text-yellow-500" 
             gradient="from-yellow-500 to-transparent"
+            delay="150ms"
         />
       </div>
 
       {/* Main Charts Row 1 */}
       <div className={`grid grid-cols-1 lg:grid-cols-2 ${s.gap} ${s.chartH}`}>
          {/* Attendance Trend */}
-         <div className={`bg-zinc-800 border-2 border-zinc-700 shadow-brutal ${s.p} flex flex-col hover:border-white transition-all duration-300 group`}>
+         <div className={`bg-zinc-800 border-2 border-zinc-700 shadow-brutal ${s.p} flex flex-col hover:border-white transition-all duration-300 group animate-slide-up opacity-0`} style={{ animationDelay: '200ms', animationFillMode: 'forwards' }}>
             <div className="flex justify-between items-center mb-6 border-b border-zinc-700 pb-4">
                 <h3 className="font-black text-white uppercase tracking-tighter flex items-center gap-3">
                     <TrendingUp className="w-5 h-5 text-blue-500 group-hover:scale-110 transition-transform" />
@@ -339,7 +355,7 @@ export const Analytics: React.FC<AnalyticsProps> = ({ sessions, students, classe
             </div>
             <div className="flex-1 w-full">
                 <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart data={timelineData}>
+                    <AreaChart key={`${animationKey}-area`} data={timelineData}>
                         <defs>
                             <linearGradient id="colorAtt" x1="0" y1="0" x2="0" y2="1">
                                 <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3}/>
@@ -350,31 +366,31 @@ export const Analytics: React.FC<AnalyticsProps> = ({ sessions, students, classe
                         <XAxis dataKey="date" stroke="#71717a" fontSize={10} tickLine={false} axisLine={false} dy={10} fontFamily="monospace" />
                         <YAxis stroke="#71717a" fontSize={10} tickLine={false} axisLine={false} dx={-10} unit="%" fontFamily="monospace" />
                         <Tooltip content={<CustomTooltip />} />
-                        <Area type="monotone" dataKey="attendance" stroke="#3b82f6" strokeWidth={3} fillOpacity={1} fill="url(#colorAtt)" animationDuration={1500} />
+                        <Area type="monotone" dataKey="attendance" stroke="#3b82f6" strokeWidth={3} fillOpacity={1} fill="url(#colorAtt)" animationDuration={1500} animationEasing="ease-out" />
                     </AreaChart>
                 </ResponsiveContainer>
             </div>
          </div>
 
-         {/* Verse Breakdown Stacked Bar */}
-         <div className={`bg-zinc-800 border-2 border-zinc-700 shadow-brutal ${s.p} flex flex-col hover:border-white transition-all duration-300 group`}>
+         {/* Assignment Breakdown Stacked Bar */}
+         <div className={`bg-zinc-800 border-2 border-zinc-700 shadow-brutal ${s.p} flex flex-col hover:border-white transition-all duration-300 group animate-slide-up opacity-0`} style={{ animationDelay: '250ms', animationFillMode: 'forwards' }}>
             <div className="flex justify-between items-center mb-6 border-b border-zinc-700 pb-4">
                 <h3 className="font-black text-white uppercase tracking-tighter flex items-center gap-3">
                     <Zap className="w-5 h-5 text-yellow-500 group-hover:scale-110 transition-transform" />
-                    Verse Breakdown
+                    Assignment Breakdown
                 </h3>
             </div>
             <div className="flex-1 w-full">
                 <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={timelineData}>
+                    <BarChart key={`${animationKey}-bar`} data={timelineData}>
                         <CartesianGrid strokeDasharray="3 3" stroke="#27272a" vertical={false} />
                         <XAxis dataKey="date" stroke="#71717a" fontSize={10} tickLine={false} axisLine={false} dy={10} fontFamily="monospace" />
                         <YAxis stroke="#71717a" fontSize={10} tickLine={false} axisLine={false} dx={-10} fontFamily="monospace" />
                         <Tooltip content={<CustomTooltip />} />
                         <Legend iconType="square" wrapperStyle={{ paddingTop: '20px', fontSize: '12px', fontFamily: 'monospace' }} />
-                        <Bar dataKey="Fluent" stackId="a" fill={COLORS.success} animationDuration={1500} />
-                        <Bar dataKey="Attempted" stackId="a" fill={COLORS.warning} animationDuration={1500} />
-                        <Bar dataKey="Failed" stackId="a" fill={COLORS.primary} animationDuration={1500} />
+                        <Bar dataKey="Complete" stackId="a" fill={COLORS.success} animationDuration={1200} animationEasing="ease-out" />
+                        <Bar dataKey="Partial" stackId="a" fill={COLORS.warning} animationDuration={1200} animationEasing="ease-out" />
+                        <Bar dataKey="Missing" stackId="a" fill={COLORS.primary} animationDuration={1200} animationEasing="ease-out" />
                     </BarChart>
                 </ResponsiveContainer>
             </div>
@@ -384,15 +400,15 @@ export const Analytics: React.FC<AnalyticsProps> = ({ sessions, students, classe
       {/* Secondary Charts & Leaderboards */}
       <div className={`grid grid-cols-1 lg:grid-cols-3 ${s.gap}`}>
           
-          {/* Verse Distribution Pie */}
-          <div className={`bg-zinc-800 border-2 border-zinc-700 shadow-brutal ${s.p} flex flex-col hover:border-white transition-all duration-300 group`}>
+          {/* Assignment Distribution Pie */}
+          <div className={`bg-zinc-800 border-2 border-zinc-700 shadow-brutal ${s.p} flex flex-col hover:border-white transition-all duration-300 group animate-slide-up opacity-0`} style={{ animationDelay: '300ms', animationFillMode: 'forwards' }}>
              <h3 className="font-black text-white uppercase tracking-tighter mb-4 flex items-center gap-2 border-b border-zinc-700 pb-2">
                 <Target className="w-5 h-5 text-primary-500 group-hover:rotate-45 transition-transform" />
-                Verse Status Dist.
+                Assignment Status Dist.
              </h3>
              <div className="flex-1 min-h-[250px] relative">
                 <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
+                    <PieChart key={`${animationKey}-pie`}>
                         <Pie
                             data={verseDistData}
                             innerRadius={60}
@@ -400,6 +416,8 @@ export const Analytics: React.FC<AnalyticsProps> = ({ sessions, students, classe
                             paddingAngle={5}
                             dataKey="value"
                             stroke="none"
+                            animationDuration={1000}
+                            animationEasing="ease-out"
                         >
                             {verseDistData.map((entry, index) => (
                                 <Cell key={`cell-${index}`} fill={entry.color} />
@@ -418,14 +436,14 @@ export const Analytics: React.FC<AnalyticsProps> = ({ sessions, students, classe
           </div>
 
           {/* Top Attendance Leaderboard */}
-          <div className={`bg-zinc-800 border-2 border-zinc-700 shadow-brutal ${s.p} flex flex-col hover:border-white transition-all duration-300`}>
+          <div className={`bg-zinc-800 border-2 border-zinc-700 shadow-brutal ${s.p} flex flex-col hover:border-white transition-all duration-300 animate-slide-up opacity-0`} style={{ animationDelay: '350ms', animationFillMode: 'forwards' }}>
              <h3 className="font-black text-white uppercase tracking-tighter mb-4 flex items-center gap-2 border-b border-zinc-700 pb-2">
                 <Trophy className="w-5 h-5 text-green-500" />
                 Top Attendance
              </h3>
              <div className="flex-1 overflow-y-auto space-y-2 custom-scrollbar pr-2">
                 {topAttendance.length > 0 ? topAttendance.map((s, idx) => (
-                    <div key={s.id} className="flex items-center justify-between p-3 bg-zinc-900 border border-zinc-700 hover:border-green-500 transition-colors group cursor-default hover:translate-x-1">
+                    <div key={s.id} className="flex items-center justify-between p-3 bg-zinc-900 border border-zinc-700 hover:border-green-500 transition-colors group cursor-default hover:translate-x-1 animate-slide-up opacity-0" style={{ animationDelay: `${400 + (idx * 50)}ms`, animationFillMode: 'forwards' }}>
                         <div className="flex items-center gap-3">
                             <div className={`w-6 h-6 flex items-center justify-center text-xs font-black border border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] ${idx === 0 ? 'bg-yellow-500 text-black' : 'bg-zinc-700 text-white'}`}>
                                 {idx + 1}
@@ -443,24 +461,70 @@ export const Analytics: React.FC<AnalyticsProps> = ({ sessions, students, classe
              </div>
           </div>
 
-          {/* Top Verses Leaderboard */}
-          <div className={`bg-zinc-800 border-2 border-zinc-700 shadow-brutal ${s.p} flex flex-col hover:border-white transition-all duration-300`}>
-             <h3 className="font-black text-white uppercase tracking-tighter mb-4 flex items-center gap-2 border-b border-zinc-700 pb-2">
-                <Medal className="w-5 h-5 text-purple-500" />
-                Memory Masters
-             </h3>
+          {/* Top Assignments Leaderboard - ENHANCED */}
+          <div className={`bg-zinc-800 border-2 border-zinc-700 shadow-brutal ${s.p} flex flex-col hover:border-white transition-all duration-300 animate-slide-up opacity-0`} style={{ animationDelay: '400ms', animationFillMode: 'forwards' }}>
+             <div className="flex justify-between items-center mb-4 border-b border-zinc-700 pb-2">
+                <h3 className="font-black text-white uppercase tracking-tighter flex items-center gap-2">
+                    <Medal className="w-5 h-5 text-purple-500" />
+                    Leaders
+                </h3>
+                <div className="flex gap-1">
+                    <button 
+                        onClick={() => setAssignmentSort('score')} 
+                        className={`text-[10px] font-mono font-bold px-1.5 py-0.5 border-2 transition-all active:scale-95 ${assignmentSort === 'score' ? 'bg-purple-500 text-white border-purple-500' : 'text-zinc-500 border-zinc-700 hover:border-zinc-500 hover:text-zinc-300'}`}
+                        title="Combined Score"
+                    >
+                        ALL
+                    </button>
+                    <button 
+                        onClick={() => setAssignmentSort('completed')} 
+                        className={`text-[10px] font-mono font-bold px-1.5 py-0.5 border-2 transition-all active:scale-95 ${assignmentSort === 'completed' ? 'bg-green-600 text-white border-green-600' : 'text-zinc-500 border-zinc-700 hover:border-zinc-500 hover:text-zinc-300'}`}
+                        title="Sort by Completed"
+                    >
+                        CMP
+                    </button>
+                    <button 
+                        onClick={() => setAssignmentSort('partial')} 
+                        className={`text-[10px] font-mono font-bold px-1.5 py-0.5 border-2 transition-all active:scale-95 ${assignmentSort === 'partial' ? 'bg-blue-600 text-white border-blue-600' : 'text-zinc-500 border-zinc-700 hover:border-zinc-500 hover:text-zinc-300'}`}
+                        title="Sort by Partial"
+                    >
+                        PRT
+                    </button>
+                </div>
+             </div>
+             
              <div className="flex-1 overflow-y-auto space-y-2 custom-scrollbar pr-2">
                 {topVerses.length > 0 ? topVerses.map((s, idx) => (
-                    <div key={s.id} className="flex items-center justify-between p-3 bg-zinc-900 border border-zinc-700 hover:border-purple-500 transition-colors group cursor-default hover:translate-x-1">
+                    <div key={s.id} className="flex items-center justify-between p-3 bg-zinc-900 border border-zinc-700 hover:border-purple-500 transition-colors group cursor-default hover:translate-x-1 animate-slide-up opacity-0" style={{ animationDelay: `${450 + (idx * 50)}ms`, animationFillMode: 'forwards' }}>
                         <div className="flex items-center gap-3">
                             <div className={`w-6 h-6 flex items-center justify-center text-xs font-black border border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] ${idx === 0 ? 'bg-yellow-500 text-black' : 'bg-zinc-700 text-white'}`}>
                                 {idx + 1}
                             </div>
-                            <span className="text-sm font-bold text-white uppercase truncate max-w-[120px] group-hover:text-purple-500 transition-colors">{s.name}</span>
+                            <span className="text-sm font-bold text-white uppercase truncate max-w-[90px] group-hover:text-purple-500 transition-colors">{s.name}</span>
                         </div>
-                        <div className="text-right">
-                            <span className="block text-sm font-black text-purple-500">{s.fluent}</span>
-                            <span className="text-[10px] text-zinc-500 font-mono">Fluent Verses</span>
+                        <div className="text-right flex flex-col items-end">
+                            {assignmentSort === 'score' && (
+                                <>
+                                    <div className="flex gap-2 text-[10px] font-mono uppercase leading-none mb-1">
+                                        <span className="text-green-500 font-bold">{s.fluent} CMP</span>
+                                        <span className="text-zinc-600">/</span>
+                                        <span className="text-blue-500 font-bold">{s.attempted} PRT</span>
+                                    </div>
+                                    <span className="text-[10px] text-zinc-500 font-mono">Score: {s.verseScore}</span>
+                                </>
+                            )}
+                            {assignmentSort === 'completed' && (
+                                <>
+                                    <span className="block text-sm font-black text-green-500">{s.fluent}</span>
+                                    <span className="text-[10px] text-zinc-500 font-mono uppercase">Completed</span>
+                                </>
+                            )}
+                            {assignmentSort === 'partial' && (
+                                <>
+                                    <span className="block text-sm font-black text-blue-500">{s.attempted}</span>
+                                    <span className="text-[10px] text-zinc-500 font-mono uppercase">Partial</span>
+                                </>
+                            )}
                         </div>
                     </div>
                 )) : (
@@ -472,21 +536,21 @@ export const Analytics: React.FC<AnalyticsProps> = ({ sessions, students, classe
 
       {/* Class Comparison (Only Visible on ALL) */}
       {selectedClass === 'ALL' && classComparisonData.length > 0 && (
-          <div className={`bg-zinc-800 border-2 border-zinc-700 shadow-brutal ${s.p} hover:border-white transition-all duration-300 group`}>
+          <div className={`bg-zinc-800 border-2 border-zinc-700 shadow-brutal ${s.p} hover:border-white transition-all duration-300 group animate-slide-up opacity-0`} style={{ animationDelay: '500ms', animationFillMode: 'forwards' }}>
              <h3 className="font-black text-white uppercase tracking-tighter mb-6 flex items-center gap-2 border-b border-zinc-700 pb-4">
                 <Award className="w-5 h-5 text-indigo-500 group-hover:scale-110 transition-transform" />
                 Class Comparison
              </h3>
              <div className="h-[300px] w-full">
                 <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={classComparisonData} barSize={density === 'spacious' ? 60 : 40}>
+                    <BarChart key={`${animationKey}-compare`} data={classComparisonData} barSize={density === 'spacious' ? 60 : 40}>
                         <CartesianGrid strokeDasharray="3 3" stroke="#27272a" vertical={false} />
                         <XAxis dataKey="name" stroke="#71717a" fontSize={12} tickLine={false} axisLine={false} dy={10} fontFamily="monospace" />
                         <YAxis stroke="#71717a" fontSize={10} tickLine={false} axisLine={false} dx={-10} unit="%" fontFamily="monospace" />
                         <Tooltip content={<CustomTooltip />} cursor={{fill: '#27272a'}} />
                         <Legend iconType="square" wrapperStyle={{ paddingTop: '20px', fontSize: '12px', fontFamily: 'monospace' }} />
-                        <Bar dataKey="attendance" name="Attendance %" fill="#3b82f6" radius={[4, 4, 0, 0]} animationDuration={1500} />
-                        <Bar dataKey="verseSuccess" name="Verse Success %" fill="#10b981" radius={[4, 4, 0, 0]} animationDuration={1500} />
+                        <Bar dataKey="attendance" name="Attendance %" fill="#3b82f6" radius={[4, 4, 0, 0]} animationDuration={1200} animationEasing="ease-out" />
+                        <Bar dataKey="verseSuccess" name="Assignment %" fill="#10b981" radius={[4, 4, 0, 0]} animationDuration={1200} animationEasing="ease-out" />
                     </BarChart>
                 </ResponsiveContainer>
              </div>

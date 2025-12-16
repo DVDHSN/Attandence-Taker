@@ -92,7 +92,7 @@ export const exportToCSV = (sessions: ClassSession[], students: Student[]) => {
   const headers = [
     'Date', 
     'Topic',
-    'Memory Verse', 
+    'Assignment', 
     'Total Present', 
     'Total Absent', 
     ...students.map(s => {
@@ -117,7 +117,7 @@ export const exportToCSV = (sessions: ClassSession[], students: Student[]) => {
       
       let status = record.status === 'present' ? 'Present' : 'Absent';
       if (record.memoryVerseStatus) {
-        status += ` | Verse: ${record.memoryVerseStatus}`;
+        status += ` | Assignment: ${record.memoryVerseStatus}`;
       }
       return status;
     });
@@ -144,7 +144,7 @@ export const exportToCSV = (sessions: ClassSession[], students: Student[]) => {
 };
 
 export const exportStudentHistoryToCSV = (student: Student, history: any[]) => {
-  const headers = ['Date', 'Topic', 'Memory Verse', 'Attendance Status', 'Verse Mastery'].map(escapeCsvField);
+  const headers = ['Date', 'Topic', 'Assignment', 'Attendance Status', 'Assignment Status'].map(escapeCsvField);
   
   const rows = history.map(h => [
     h.date,

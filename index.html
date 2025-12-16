@@ -22,6 +22,7 @@
               'smooth': 'cubic-bezier(0.16, 1, 0.3, 1)',
               'bounce-sm': 'cubic-bezier(0.34, 1.56, 0.64, 1)',
               'out-expo': 'cubic-bezier(0.19, 1, 0.22, 1)',
+              'hard': 'cubic-bezier(0.87, 0, 0.13, 1)',
             },
             colors: {
               gray: {
@@ -57,34 +58,57 @@
               'brutal-hover': '2px 2px 0px 0px rgba(0,0,0,1)',
               'brutal-active': '0px 0px 0px 0px rgba(0,0,0,1)',
               'glow': '0 0 15px rgba(239, 68, 68, 0.5)',
+              'brutal-white': '4px 4px 0px 0px rgba(255,255,255,1)',
             },
             animation: {
-              'fade-in': 'fadeIn 0.2s ease-out forwards',
-              'slide-up': 'slideUp 0.3s ease-out forwards',
+              'fade-in': 'fadeIn 0.3s ease-out forwards',
+              'fade-in-up': 'fadeInUp 0.4s ease-out forwards',
+              'slide-up': 'slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards',
+              'slide-in-right': 'slideInRight 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards',
               'scale-in': 'scaleIn 0.2s cubic-bezier(0.34, 1.56, 0.64, 1) forwards',
+              'slam': 'slam 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards',
               'pulse-fast': 'pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite',
               'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
               'pop': 'pop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards',
               'shake': 'shake 0.4s cubic-bezier(.36,.07,.19,.97) both',
               'glitch': 'glitch 2s infinite',
+              'wiggle': 'wiggle 0.5s ease-in-out infinite',
+              'squeeze': 'squeeze 0.1s ease-in-out',
             },
             keyframes: {
               fadeIn: {
                 '0%': { opacity: '0' },
                 '100%': { opacity: '1' },
               },
+              fadeInUp: {
+                '0%': { opacity: '0', transform: 'translateY(10px)' },
+                '100%': { opacity: '1', transform: 'translateY(0)' },
+              },
               slideUp: {
-                '0%': { transform: 'translateY(10px)', opacity: '0' },
+                '0%': { transform: 'translateY(20px)', opacity: '0' },
                 '100%': { transform: 'translateY(0)', opacity: '1' },
+              },
+              slideInRight: {
+                '0%': { transform: 'translateX(100%)' },
+                '100%': { transform: 'translateX(0)' },
               },
               scaleIn: {
                 '0%': { transform: 'scale(0.95)', opacity: '0' },
                 '100%': { transform: 'scale(1)', opacity: '1' },
               },
+              slam: {
+                '0%': { transform: 'scale(1.1)', opacity: '0' },
+                '60%': { transform: 'scale(0.98)', opacity: '1' },
+                '100%': { transform: 'scale(1)', opacity: '1' },
+              },
               pop: {
-                '0%': { transform: 'scale(0.95)' },
-                '40%': { transform: 'scale(1.02)' },
+                '0%': { transform: 'scale(0.9)' },
+                '40%': { transform: 'scale(1.1)' },
                 '100%': { transform: 'scale(1)' },
+              },
+              squeeze: {
+                '0%, 100%': { transform: 'scale(1)' },
+                '50%': { transform: 'scale(0.95)' },
               },
               shake: {
                 '10%, 90%': { transform: 'translate3d(-1px, 0, 0)' },
@@ -98,6 +122,10 @@
                 '4%': { transform: 'translate(2px, -2px)' },
                 '6%': { transform: 'translate(0)' },
                 '100%': { transform: 'translate(0)' },
+              },
+              wiggle: {
+                 '0%, 100%': { transform: 'rotate(-3deg)' },
+                 '50%': { transform: 'rotate(3deg)' }
               }
             }
           }
@@ -114,25 +142,31 @@
         background-size: 20px 20px;
       }
       
+      ::selection {
+        background-color: #ef4444;
+        color: white;
+      }
+      
       /* Brutalist Scrollbar */
       ::-webkit-scrollbar {
-        width: 12px;
-        background: #18181b;
+        width: 14px;
+        background: #09090b;
         border-left: 2px solid #3f3f46;
       }
       ::-webkit-scrollbar-track {
-        background: #18181b; 
+        background: #09090b; 
       }
       ::-webkit-scrollbar-thumb {
-        background: #ef4444; 
-        border: 2px solid #18181b;
+        background: #3f3f46; 
+        border: 2px solid #09090b;
       }
       ::-webkit-scrollbar-thumb:hover {
-        background: #dc2626; 
+        background: #ef4444; 
+        border-color: #fff;
       }
 
       .custom-scrollbar::-webkit-scrollbar {
-        width: 8px;
+        width: 10px;
       }
       
       input[type="date"]::-webkit-calendar-picker-indicator {
@@ -147,6 +181,11 @@
       
       .glitch-text:hover {
         animation: glitch 0.5s infinite;
+      }
+      
+      .stagger-enter {
+         opacity: 0;
+         animation: fadeInUp 0.4s ease-out forwards;
       }
     </style>
   <script type="importmap">
